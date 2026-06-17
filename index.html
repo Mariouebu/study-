@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG勉強クエスト 〜賢者の試練・新章〜</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+Rounded+1C:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1C', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .retro-font {
+            font-family: 'DotGothic16', sans-serif;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes flash-red {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.4); }
+        }
+        @keyframes slash-effect {
+            0% { transform: scaleX(0) rotate(-45deg); opacity: 1; }
+            100% { transform: scaleX(1.5) rotate(-45deg); opacity: 0; }
+        }
+        .animate-shake {
+            animation: shake 0.3s ease-in-out;
+        }
+        .animate-bounce-gentle {
+            animation: bounce-gentle 2s infinite ease-in-out;
+        }
+        .animate-flash-red {
+            animation: flash-red 0.4s ease-out;
+        }
+        .slash {
+            position: absolute;
+            width: 150px;
+            height: 10px;
+            background: linear-gradient(90deg, transparent, #ef4444, white, #ef4444, transparent);
+            transform-origin: center;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .pixel-corners {
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-6 select-none bg-gradient-to-b from-slate-900 via-slate-850 to-indigo-950">
+
+    <header class="w-full max-w-4xl bg-slate-800/80 backdrop-blur-md border-b-4 border-amber-500 rounded-t-2xl p-4 flex flex-wrap justify-between items-center gap-3 shadow-lg z-10">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">⚔️</span>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-amber-400 retro-font tracking-wider">RPG勉強クエスト</h1>
+                <p class="text-xs text-slate-400">〜賢者の試練・新章〜</p>
+            </div>
+        </div>
+        <div id="player-summary" class="hidden flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm bg-slate-900/60 py-1.5 px-3 rounded-lg border border-slate-700">
+            <div>
+                <span id="summary-name" class="font-bold text-amber-300">勇者</span> 
+                <span class="text-xs text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded ml-1" id="summary-class">戦士</span>
+            </div>
+            <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
+            <div>
+                <span class="text-xs text-slate-400 bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded" id="summary-grade">小学4年</span>
+            </div>
+            <div class="h-4 w-px bg-slate-700"></div>
+            <div>
+                <span class="text-xs text-slate-400">Lv.</span><span id="summary-lv" class="font-bold text-emerald-400">1</span>
+            </div>
+            <div class="h-4 w-px bg-slate-700"></div>
+            <div class="flex items-center gap-1">
+                <span class="text-amber-400">🪙</span><span id="summary-gold" class="font-bold">100</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl bg-slate-900/95 border-x-4 border-b-4 border-amber-500 rounded-b-2xl shadow-2xl relative flex-1 flex flex-col overflow-hidden min-h-[550px]">
+        
+        <!-- TITLE / START SCREEN -->
+        <div id="screen-title" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+            <div class="animate-bounce-gentle mb-8">
+                <span class="text-7xl md:text-8xl drop-shadow-[0_5px_15px_rgba(245,158,11,0.4)]">🎓🛡️</span>
+            </div>
+            <h2 class="text-3xl md:text-5xl font-black text-amber-400 mb-4 tracking-widest retro-font drop-shadow-md">RPG勉強クエスト</h2>
+            <p class="text-slate-300 max-w-md mx-auto mb-8 leading-relaxed text-sm md:text-base">
+                クイズに答えて魔物を倒す、学習型ファンタジーRPG！<br>
+                学年と単元を選んで、キミにぴったりの知恵の試練に挑もう！
+            </p>
+            <button onclick="changeScreen('screen-character')" class="retro-font px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xl rounded-xl shadow-[0_4px_20px_rgba(245,158,11,0.5)] border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0">
+                冒険をはじめる
+            </button>
+        </div>
+
+        <!-- CHARACTER SELECT SCREEN -->
+        <div id="screen-character" class="hidden flex-1 flex flex-col p-6">
+            <h3 class="text-2xl font-bold text-center text-amber-400 retro-font mb-6">キャラクターを選んでください</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-auto">
+                <!-- Warrior Card -->
+                <div onclick="selectClass('warrior')" class="class-card group cursor-pointer border-2 border-slate-700 hover:border-amber-400 bg-slate-800/50 hover:bg-slate-800 p-5 rounded-xl transition flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute top-2 right-2 opacity-10 group-hover:opacity-20 text-5xl transition">⚔️</div>
+                    <div class="text-5xl mb-3 animate-bounce-gentle" style="animation-delay: 0s;">🛡️</div>
+                    <h4 class="text-xl font-bold text-red-400 mb-1 retro-font">戦士 (Warrior)</h4>
+                    <p class="text-xs text-slate-400 mb-3">高耐久・堅実な守り</p>
+                    <p class="text-sm text-slate-300 flex-1 leading-relaxed font-semibold">
+                        HPが高く倒れにくい。特殊スキル「シールドバッシュ」で敵の攻撃を完全に1回防御可能。初心者にオススメ。
+                    </p>
+                </div>
+
+                <!-- Mage Card -->
+                <div onclick="selectClass('mage')" class="class-card group cursor-pointer border-2 border-slate-700 hover:border-amber-400 bg-slate-800/50 hover:bg-slate-800 p-5 rounded-xl transition flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute top-2 right-2 opacity-10 group-hover:opacity-20 text-5xl transition">🔮</div>
+                    <div class="text-5xl mb-3 animate-bounce-gentle" style="animation-delay: 0.3s;">⚡</div>
+                    <h4 class="text-xl font-bold text-sky-400 mb-1 retro-font">魔法使い (Mage)</h4>
+                    <p class="text-xs text-slate-400 mb-3">一撃必殺・高火力</p>
+                    <p class="text-sm text-slate-300 flex-1 leading-relaxed font-semibold">
+                        HPは低め。特殊スキル「魔力集中」で、次の正解時のダメージが2倍になる。クイズに自信があるキミに。
+                    </p>
+                </div>
+
+                <!-- Scholar Card -->
+                <div onclick="selectClass('scholar')" class="class-card group cursor-pointer border-2 border-slate-700 hover:border-amber-400 bg-slate-800/50 hover:bg-slate-800 p-5 rounded-xl transition flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute top-2 right-2 opacity-10 group-hover:opacity-20 text-5xl transition">📜</div>
+                    <div class="text-5xl mb-3 animate-bounce-gentle" style="animation-delay: 0.6s;">🔬</div>
+                    <h4 class="text-xl font-bold text-emerald-400 mb-1 retro-font">学者 (Scholar)</h4>
+                    <p class="text-xs text-slate-400 mb-3">知識追求・補助の達人</p>
+                    <p class="text-sm text-slate-300 flex-1 leading-relaxed font-semibold">
+                        バランス型。特殊スキル「検索の術」で、4つの選択肢を2つに絞り込める（50:50）。確実に進めたいキミに。
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex flex-col items-center gap-3">
+                <input id="player-name-input" type="text" placeholder="勇者の名前を入力してね" max="8" class="px-4 py-2 bg-slate-800 border-2 border-slate-700 rounded-lg text-center font-bold focus:border-amber-400 outline-none w-64 text-slate-100">
+                <p id="character-error" class="text-red-400 text-sm h-5 font-bold"></p>
+                <div class="flex gap-4">
+                    <button onclick="changeScreen('screen-title')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg border border-slate-700 transition font-bold">もどる</button>
+                    <button onclick="confirmCharacter()" class="px-8 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition shadow-md">決定！</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRADE SELECTION SCREEN -->
+        <div id="screen-grade" class="hidden flex-1 flex flex-col p-6 overflow-y-auto">
+            <h3 class="text-2xl font-bold text-center text-amber-400 retro-font mb-4">学年を選んでください</h3>
+            <p class="text-center text-slate-400 text-sm mb-6">選んだ学年に応じたクイズと単元が出現します。</p>
+
+            <div class="space-y-6 max-w-2xl mx-auto w-full my-auto">
+                <!-- Elementary Section -->
+                <div>
+                    <h4 class="text-amber-500 font-bold border-b border-slate-700 pb-1 mb-3 flex items-center gap-2">
+                        <span>🎒</span> 小学校
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <button onclick="selectGrade('elem_1')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">小学1年</button>
+                        <button onclick="selectGrade('elem_2')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">小学2年</button>
+                        <button onclick="selectGrade('elem_3')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">小学3年</button>
+                        <button onclick="selectGrade('elem_4')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">小学4年</button>
+                        <button onclick="selectGrade('elem_5')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">小学5年</button>
+                        <button onclick="selectGrade('elem_6')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">小学6年</button>
+                    </div>
+                </div>
+
+                <!-- Middle Section -->
+                <div>
+                    <h4 class="text-sky-400 font-bold border-b border-slate-700 pb-1 mb-3 flex items-center gap-2">
+                        <span>🏫</span> 中学校
+                    </h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="selectGrade('mid_1')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">中学1年</button>
+                        <button onclick="selectGrade('mid_2')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">中学2年</button>
+                        <button onclick="selectGrade('mid_3')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">中学3年</button>
+                    </div>
+                </div>
+
+                <!-- High Section -->
+                <div>
+                    <h4 class="text-emerald-400 font-bold border-b border-slate-700 pb-1 mb-3 flex items-center gap-2">
+                        <span>🎓</span> 高校
+                    </h4>
+                    <div class="grid grid-cols-1">
+                        <button onclick="selectGrade('high')" class="grade-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-400 rounded-xl transition text-center font-bold text-slate-200">高校生・その他</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-center gap-4">
+                <button onclick="changeScreen('screen-character')" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg border border-slate-700 transition font-bold">キャラクター選択へもどる</button>
+            </div>
+        </div>
+
+        <!-- ADVENTURE MAP SCREEN -->
+        <div id="screen-map" class="hidden flex-1 flex flex-col p-6">
+            <div class="flex flex-wrap justify-between items-center mb-6 border-b border-slate-800 pb-3 gap-3">
+                <h3 class="text-xl font-bold text-amber-400 retro-font">挑戦する教科を選択しよう</h3>
+                <div class="flex gap-2">
+                    <button onclick="changeScreen('screen-grade')" class="px-3 py-1.5 bg-indigo-900 hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md border border-indigo-700">
+                        🔄 学年を変更
+                    </button>
+                    <button onclick="openShop()" class="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-slate-100 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md">
+                        🪙 道具屋
+                    </button>
+                    <button onclick="openStatus()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs flex items-center gap-1.5">
+                        👤 ステータス
+                    </button>
+                </div>
+            </div>
+
+            <!-- Subject Cards Map -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 my-auto">
+                <!-- Math -->
+                <div onclick="selectSubject('math')" class="subject-card group cursor-pointer border border-slate-700 hover:border-blue-400 bg-slate-850 p-4 rounded-xl transition flex items-center gap-4">
+                    <div class="text-4xl bg-blue-500/20 p-3 rounded-lg group-hover:bg-blue-500/30 transition">🧮</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-blue-300 text-base" id="subject-math-title">算数・数学の塔</h4>
+                            <span class="text-[10px] bg-blue-500/20 text-blue-300 py-0.5 px-1.5 rounded">計算・論理</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">計算や図形、論理的思考力を試す試練</p>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div class="bg-blue-400 h-full rounded-full" id="progress-math" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Science -->
+                <div onclick="selectSubject('science')" class="subject-card group cursor-pointer border border-slate-700 hover:border-emerald-400 bg-slate-850 p-4 rounded-xl transition flex items-center gap-4">
+                    <div class="text-4xl bg-emerald-500/20 p-3 rounded-lg group-hover:bg-emerald-500/30 transition">🧪</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-emerald-300 text-base">理科・自然の森</h4>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 py-0.5 px-1.5 rounded">観察・探究</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">生物、天体、化学や実験などの大自然の謎</p>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div class="bg-emerald-400 h-full rounded-full" id="progress-science" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- English -->
+                <div onclick="selectSubject('english')" class="subject-card group cursor-pointer border border-slate-700 hover:border-violet-400 bg-slate-850 p-4 rounded-xl transition flex items-center gap-4">
+                    <div class="text-4xl bg-violet-500/20 p-3 rounded-lg group-hover:bg-violet-500/30 transition">🇬🇧</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-violet-300 text-base">英語・異界の街</h4>
+                            <span class="text-[10px] bg-violet-500/20 text-violet-300 py-0.5 px-1.5 rounded">英単語・文法</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">異世界の言葉・英熟語や会話表現を学ぶ</p>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div class="bg-violet-400 h-full rounded-full" id="progress-english" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Japanese -->
+                <div onclick="selectSubject('japanese')" class="subject-card group cursor-pointer border border-slate-700 hover:border-red-400 bg-slate-850 p-4 rounded-xl transition flex items-center gap-4">
+                    <div class="text-4xl bg-red-500/20 p-3 rounded-lg group-hover:bg-red-500/30 transition">🌸</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-red-300 text-base">国語・桜の社</h4>
+                            <span class="text-[10px] bg-red-500/20 text-red-300 py-0.5 px-1.5 rounded">読解・漢字</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">漢字、ことわざ、美しい日本の言葉</p>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div class="bg-red-400 h-full rounded-full" id="progress-japanese" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Studies -->
+                <div onclick="selectSubject('social')" class="subject-card group cursor-pointer border border-slate-700 hover:border-amber-400 bg-slate-850 p-4 rounded-xl transition flex items-center gap-4">
+                    <div class="text-4xl bg-amber-500/20 p-3 rounded-lg group-hover:bg-amber-500/30 transition">🗺️</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-amber-300 text-base">社会・歴史の大地</h4>
+                            <span class="text-[10px] bg-amber-500/20 text-amber-300 py-0.5 px-1.5 rounded">歴史・地理</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">日本の地域、歴史の英傑や世界地理</p>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                            <div class="bg-amber-400 h-full rounded-full" id="progress-social" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mysterious Boss Castle -->
+                <div id="boss-castle" onclick="selectSubject('boss')" class="opacity-50 pointer-events-none group border border-dashed border-red-500/40 bg-slate-900/60 p-4 rounded-xl flex items-center gap-4 relative">
+                    <div class="absolute top-1 right-2 text-[10px] text-red-400 font-bold" id="boss-lock-label">🔒 ロック</div>
+                    <div class="text-4xl bg-red-900/20 p-3 rounded-lg">🏰</div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-red-500 text-base">魔王城 (ラストバトル)</h4>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">すべての教科から最高難度の総合試練</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center text-xs text-slate-500">
+                ※どれか3つのダンジョンをクリアすると「魔王城」が開放される！
+            </div>
+        </div>
+
+        <!-- UNIT SELECTION SCREEN -->
+        <div id="screen-unit" class="hidden flex-1 flex flex-col p-6">
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-800 pb-3">
+                <button onclick="changeScreen('screen-map')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs transition font-bold">
+                    ◀ マップへもどる
+                </button>
+                <h3 class="text-xl font-bold text-amber-400 retro-font" id="unit-screen-title">算数の単元を選ぼう</h3>
+            </div>
+
+            <p class="text-sm text-slate-400 mb-6">攻略する単元を選択してください。単元ごとに登場するモンスターが異なります。</p>
+
+            <div id="units-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-auto">
+                <!-- Dynamically populated buttons -->
+            </div>
+
+            <div class="mt-8 text-center text-xs text-slate-500">
+                単元をクリア（目の前の魔物を討伐）すると、その教科全体のクリアに近づくぞ！
+            </div>
+        </div>
+
+        <!-- BATTLE SCREEN -->
+        <div id="screen-battle" class="hidden flex-1 flex flex-col p-3 md:p-6 overflow-hidden select-none">
+            <!-- Stage Header -->
+            <div class="flex justify-between items-center mb-4 bg-slate-800/50 p-2.5 rounded-lg border border-slate-700/50">
+                <span id="battle-stage-title" class="font-bold text-amber-300 text-xs md:text-base">算数の塔 - たしざん</span>
+                <span class="text-[10px] md:text-xs bg-red-500/20 text-red-400 px-2.5 py-1 rounded font-bold" id="battle-difficulty">LEVEL: EASY</span>
+            </div>
+
+            <!-- VS Combat Area -->
+            <div id="combat-area" class="grid grid-cols-2 gap-2 md:gap-4 flex-1 items-center justify-center py-4 relative transition duration-300 rounded-xl bg-slate-950/20 border border-slate-800/50 mb-3">
+                
+                <!-- Player Column -->
+                <div class="flex flex-col items-center relative" id="player-unit">
+                    <div class="text-5xl md:text-6xl mb-3 animate-bounce-gentle" id="battle-player-avatar">🛡️</div>
+                    <div class="w-full max-w-[150px]">
+                        <div class="flex justify-between text-[10px] md:text-xs font-bold text-slate-300 mb-1">
+                            <span id="battle-player-name">勇者</span>
+                            <span id="battle-player-hp-txt">100/100</span>
+                        </div>
+                        <div class="w-full bg-slate-850 h-3 rounded-full overflow-hidden border border-slate-700">
+                            <div id="battle-player-hp-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div id="player-status-badge" class="absolute -top-4 bg-amber-400 text-slate-950 font-bold text-[10px] px-1.5 py-0.5 rounded shadow hidden">シールド中</div>
+                </div>
+
+                <!-- VS Middle Indicator -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-10">
+                    <span class="text-6xl md:text-8xl font-black italic text-slate-700">VS</span>
+                </div>
+
+                <!-- Monster Column -->
+                <div class="flex flex-col items-center relative" id="monster-unit">
+                    <div class="text-5xl md:text-6xl mb-3 animate-bounce-gentle" id="battle-monster-avatar" style="animation-delay: 0.5s;">👾</div>
+                    <div class="w-full max-w-[150px] z-10">
+                        <div class="flex justify-between text-[10px] md:text-xs font-bold text-slate-300 mb-1">
+                            <span id="battle-monster-name">スライム</span>
+                            <span id="battle-monster-hp-txt">30/30</span>
+                        </div>
+                        <div class="w-full bg-slate-850 h-3 rounded-full overflow-hidden border border-slate-700">
+                            <div id="battle-monster-hp-bar" class="bg-gradient-to-r from-red-500 to-rose-400 h-full rounded-full transition-all duration-300" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Command Area -->
+            <div class="mt-auto bg-slate-850 p-4 rounded-xl border-2 border-slate-750 flex flex-col gap-4 shadow-inner relative">
+                <!-- Question Container -->
+                <div class="text-center">
+                    <div class="text-xs text-amber-500 font-bold mb-1 retro-font">【知恵のクイズ】</div>
+                    <div id="battle-question" class="text-sm md:text-base lg:text-lg font-bold leading-relaxed text-slate-100 min-h-[50px] flex items-center justify-center px-2">
+                        計算をしてください： 9 × 8 - 12 = ?
+                    </div>
+                </div>
+
+                <!-- Choices Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3" id="choices-container">
+                    <!-- Choice buttons generated on the fly -->
+                </div>
+
+                <!-- Battle Controls / Item & Special Skills -->
+                <div class="flex flex-wrap gap-2 justify-between items-center border-t border-slate-750 pt-3">
+                    <div class="flex gap-2">
+                        <!-- Potion Button -->
+                        <button id="btn-use-potion" onclick="usePotion()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-slate-100 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                            🧪 回復薬 (<span id="potion-count">1</span>)
+                        </button>
+                        <!-- Special Ability Button -->
+                        <button id="btn-special-skill" onclick="useSpecialSkill()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-slate-100 rounded-lg text-xs font-bold flex items-center gap-1 transition">
+                            ⚡ 特殊スキル (<span id="skill-cooldown">利用可能</span>)
+                        </button>
+                    </div>
+                    <button onclick="escapeBattle()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-400 rounded-lg text-xs border border-slate-700 transition">
+                        🏃‍♂️ 逃げる
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="w-full max-w-4xl bg-slate-900/40 p-3 text-center text-xs text-slate-500 flex justify-between items-center rounded-b-xl border-t border-slate-800/80 mt-1">
+        <span>© 2026 RPG Study Quest.</span>
+        <div class="flex gap-2">
+            <span class="text-[10px] bg-slate-800 py-0.5 px-2 rounded">音量・効果音 ON</span>
+        </div>
+    </footer>
+
+    <!-- SHOP MODAL -->
+    <div id="shop-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-4 border-yellow-500 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+            <h3 class="text-2xl font-bold text-yellow-400 retro-font text-center mb-6">🏰 冒険者の道具屋</h3>
+            <div class="flex justify-between items-center mb-4 bg-slate-850 p-2.5 rounded-lg border border-slate-750">
+                <span class="text-sm text-slate-400">所持金:</span>
+                <span class="font-bold text-amber-300 text-lg">🪙 <span id="shop-gold">100</span></span>
+            </div>
+
+            <!-- Shop Items -->
+            <div class="space-y-3 mb-6">
+                <!-- Potion -->
+                <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">🧪</span>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-100">回復薬 (HPポーション)</h4>
+                            <p class="text-xs text-slate-400">HPを 50 回復するお薬</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('potion', 30)" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs rounded-lg shadow transition active:scale-95">
+                        🪙 30
+                    </button>
+                </div>
+                <!-- Special Booster -->
+                <div class="flex justify-between items-center p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">🍖</span>
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-100">特製ステーキ</h4>
+                            <p class="text-xs text-slate-400">最大HPが恒久的に +15 アップ！</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('steak', 120)" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold text-xs rounded-lg shadow transition active:scale-95">
+                        🪙 120
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeShop()" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-sm transition">
+                    お店を出る
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS MODAL -->
+    <div id="status-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-4 border-emerald-500 rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+            <h3 class="text-2xl font-bold text-emerald-400 retro-font text-center mb-6">👤 ステータスカード</h3>
+            
+            <div class="space-y-4 mb-6">
+                <div class="grid grid-cols-2 gap-4 bg-slate-850 p-4 rounded-xl border border-slate-750">
+                    <div>
+                        <span class="text-xs text-slate-400">勇者の名前</span>
+                        <p class="text-base md:text-lg font-bold text-amber-300" id="status-name">ななし</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400">職業</span>
+                        <p class="text-base md:text-lg font-bold text-sky-400" id="status-class">戦士</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400">選択中の学年</span>
+                        <p class="text-sm font-bold text-indigo-300" id="status-grade">小学4年</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400">レベル</span>
+                        <p class="text-base md:text-lg font-bold text-emerald-400">Lv. <span id="status-lv">1</span></p>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-xs text-slate-400">経験値 (EXP)</span>
+                        <p class="text-xs font-bold text-slate-300" id="status-exp">0 / 100</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-850 p-4 rounded-xl border border-slate-750 space-y-3">
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>ライフ (HP)</span>
+                            <span id="status-hp-txt">100 / 100</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div id="status-hp-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">攻撃力</span>
+                        <span class="font-bold text-red-400" id="status-atk">15</span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-400">所持回復薬</span>
+                        <span class="font-bold text-emerald-400" id="status-potion">1 個</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeStatus()" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-sm transition">
+                    閉じる
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MESSAGE MODAL -->
+    <div id="message-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-4 border-amber-500 rounded-2xl w-full max-w-md p-6 text-center shadow-2xl flex flex-col items-center">
+            <span id="msg-icon" class="text-7xl mb-4">🏆</span>
+            <h3 id="msg-title" class="text-2xl font-black text-amber-400 retro-font mb-2">VICTORY</h3>
+            <p id="msg-body" class="text-slate-300 text-sm leading-relaxed mb-6">モンスターに勝利した！</p>
+            <button id="msg-btn" onclick="closeMessageModal()" class="retro-font px-8 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-base rounded-xl border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0">
+                次へ進む
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio Synthesizer for Retro Game SFX
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3); // C6
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now);
+                    osc.stop(now + 0.55);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(80, now + 0.35);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'hit') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'hurt') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(40, now + 0.3);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'heal') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.4);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'coin') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(987.77, now); // B5
+                    osc.frequency.setValueAtTime(1318.51, now + 0.08); // E6
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'levelup') {
+                    osc.type = 'square';
+                    const scale = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+                    scale.forEach((freq, idx) => {
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    });
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc.start(now);
+                    osc.stop(now + 0.85);
+                }
+            } catch (e) {
+                console.warn('Audio synthesis warning:', e);
+            }
+        }
+
+        // Comprehensive Question Database organized by Grade -> Subject -> Unit
+        const QUESTIONS_DB = {
+            // ELEMENTARY SCHOOL 1ST GRADE
+            elem_1: {
+                name: "小学1年",
+                math: {
+                    title: "算数の塔",
+                    units: {
+                        add_1: {
+                            name: "くりあがりのない たしざん",
+                            questions: [
+                                { q: "3 ＋ 4 は いくつ？", a: ["6", "7", "8", "9"], c: 1 },
+                                { q: "5 ＋ 2 は いくつ？", a: ["6", "7", "8", "9"], c: 1 },
+                                { q: "6 ＋ 3 は いくつ？", a: ["8", "9", "10", "7"], c: 1 }
+                            ]
+                        },
+                        sub_1: {
+                            name: "くりさがりのない ひきざん",
+                            questions: [
+                                { q: "8 − 3 は いくつ？", a: ["4", "5", "6", "3"], c: 1 },
+                                { q: "9 − 5 は いくつ？", a: ["3", "4", "5", "6"], c: 1 },
+                                { q: "7 − 2 は いくつ？", a: ["5", "6", "4", "3"], c: 0 }
+                            ]
+                        }
+                    }
+                },
+                japanese: {
+                    title: "国語の桜社",
+                    units: {
+                        hiragana: {
+                            name: "ひらがな・カタカナ",
+                            questions: [
+                                { q: "「いぬ」の 最初の文字は どれ？", a: ["い", "り", "こ", "は"], c: 0 },
+                                { q: "「ねこ」を カタカナで かくと どれ？", a: ["タコ", "ネコ", "イヌ", "トリ"], c: 1 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // ELEMENTARY SCHOOL 2ND GRADE
+            elem_2: {
+                name: "小学2年",
+                math: {
+                    title: "算数の塔",
+                    units: {
+                        kuku_1: {
+                            name: "かけ算九九 (2の段〜5の段)",
+                            questions: [
+                                { q: "3 × 4 の こたえは いくつ？", a: ["12", "15", "9", "16"], c: 0 },
+                                { q: "5 × 6 の こたえは いくつ？", a: ["25", "30", "35", "40"], c: 1 },
+                                { q: "4 × 8 の こたえは いくつ？", a: ["28", "32", "36", "40"], c: 1 }
+                            ]
+                        },
+                        kuku_2: {
+                            name: "かけ算九九 (6の段〜9の段)",
+                            questions: [
+                                { q: "7 × 6 の こたえは いくつ？", a: ["42", "48", "36", "45"], c: 0 },
+                                { q: "8 × 9 の こたえは いくつ？", a: ["64", "72", "81", "73"], c: 1 },
+                                { q: "9 × 7 の こたえは いくつ？", a: ["54", "63", "72", "81"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                japanese: {
+                    title: "国語の桜社",
+                    units: {
+                        kanji_2: {
+                            name: "2年生のかんじ",
+                            questions: [
+                                { q: "「青空」の正しい読み方はどれ？", a: ["あおぞら", "あおら", "せいぞら", "せいくう"], c: 0 },
+                                { q: "「春風」の正しい読み方はどれ？", a: ["はるかぜ", "しゅんぷう", "しゅんかぜ", "はるか"], c: 0 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // ELEMENTARY SCHOOL 3RD GRADE
+            elem_3: {
+                name: "小学3年",
+                math: {
+                    title: "算数の塔",
+                    units: {
+                        div_easy: {
+                            name: "わり算のきほん",
+                            questions: [
+                                { q: "12 ÷ 3 のこたえは？", a: ["3", "4", "5", "6"], c: 1 },
+                                { q: "35 ÷ 5 のこたえは？", a: ["6", "7", "8", "9"], c: 1 },
+                                { q: "0 ÷ 8 のこたえは？", a: ["0", "1", "8", "なし"], c: 0 }
+                            ]
+                        },
+                        hissan: {
+                            name: "たし算とひき算の筆算",
+                            questions: [
+                                { q: "235 ＋ 148 の計算結果は？", a: ["373", "383", "393", "363"], c: 1 },
+                                { q: "502 − 189 の計算結果は？", a: ["313", "323", "293", "303"], c: 0 }
+                            ]
+                        }
+                    }
+                },
+                science: {
+                    title: "理科の森",
+                    units: {
+                        bugs: {
+                            name: "昆虫の育ち方とからだ",
+                            questions: [
+                                { q: "昆虫のからだは、頭・胸ともう一つ何にわかれている？", a: ["足", "おなか(腹)", "おねえ(尾)", "はね"], c: 1 },
+                                { q: "カブトムシの育ち方で「さなぎ」の次はなに？", a: ["たまご", "ようちゅう", "せいちゅう(成虫)", "ぬけがら"], c: 2 }
+                            ]
+                        }
+                    }
+                },
+                social: {
+                    title: "社会の大地",
+                    units: {
+                        symbols: {
+                            name: "地図記号をおぼえよう",
+                            questions: [
+                                { q: "「❌ (バツ)」の形をした地図記号はなにを表す？", a: ["警察署", "交番", "学校", "消防署"], c: 1 },
+                                { q: "「⚙ (歯車)」の形をした地図記号はなにを表す？", a: ["工場", "市役所", "郵便局", "神社"], c: 0 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // ELEMENTARY SCHOOL 4TH GRADE
+            elem_4: {
+                name: "小学4年",
+                math: {
+                    title: "算数の塔",
+                    units: {
+                        decimals: {
+                            name: "小数と分数の計算",
+                            questions: [
+                                { q: "1.2 ＋ 0.8 の計算結果は？", a: ["2", "1.10", "2.1", "0.2"], c: 0 },
+                                { q: "3/7 ＋ 2/7 の計算結果は？", a: ["5/14", "5/7", "1", "6/7"], c: 1 }
+                            ]
+                        },
+                        angles: {
+                            name: "角の大きさと分度器",
+                            questions: [
+                                { q: "直角(90度)が2つ分合わさると、角度は何度？", a: ["120度", "180度", "270度", "360度"], c: 1 },
+                                { q: "1回転の角度は何度？", a: ["180度", "270度", "360度", "450度"], c: 2 }
+                            ]
+                        }
+                    }
+                },
+                science: {
+                    title: "理科の森",
+                    units: {
+                        stars: {
+                            name: "月と星の動き",
+                            questions: [
+                                { q: "太陽や月は、どちらの方角から昇り、どちらに沈む？", a: ["東から西", "西から東", "南から北", "北から南"], c: 0 },
+                                { q: "オリオン座はどの季節に南の空によく見える？", a: ["春", "夏", "秋", "冬"], c: 3 }
+                            ]
+                        }
+                    }
+                },
+                social: {
+                    title: "社会の大地",
+                    units: {
+                        prefectures: {
+                            name: "都道府県と特産品",
+                            questions: [
+                                { q: "日本でいちばん面積が広い都道府県はどこ？", a: ["東京都", "岩手県", "北海道", "長野県"], c: 2 },
+                                { q: "「日本一富士山が綺麗に見える」茶の生産量でも有名な、中部地方の県はどこ？", a: ["愛知県", "静岡県", "山梨県", "長野県"], c: 1 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // ELEMENTARY SCHOOL 5TH GRADE
+            elem_5: {
+                name: "小学5年",
+                math: {
+                    title: "算数の塔",
+                    units: {
+                        fractions_hard: {
+                            name: "異分母の分数(通分)",
+                            questions: [
+                                { q: "1/2 ＋ 1/3 の計算結果は？", a: ["2/5", "1/5", "5/6", "2/6"], c: 2 },
+                                { q: "3/4 − 1/6 の計算結果は？", a: ["2/2", "7/12", "5/12", "2/12"], c: 1 }
+                            ]
+                        },
+                        percentage: {
+                            name: "割合とグラフ",
+                            questions: [
+                                { q: "定価 2000円 のおもちゃを 2割引き で買うといくらになる？", a: ["1800円", "1600円", "1400円", "400円"], c: 1 },
+                                { q: "0.45 をパーセント(%)で表すと何％？", a: ["4.5％", "45％", "0.45％", "450％"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                science: {
+                    title: "理科の森",
+                    units: {
+                        weather: {
+                            name: "天気の変化と雲",
+                            questions: [
+                                { q: "日本の天気は、基本的におおむねどの方角からどの方角へ変わる？", a: ["東から西", "西から東", "南から北", "北から南"], c: 1 },
+                                { q: "台風のうずまきは、上から見るとどちらの回り方をしている？", a: ["時計回り(右)", "反時計回り(左)", "台風によって違う", "回っていない"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                social: {
+                    title: "社会の大地",
+                    units: {
+                        industry: {
+                            name: "日本の農林水産業・工業",
+                            questions: [
+                                { q: "米づくりの盛んな、日本一の米どころといわれる平野がある東北地方の県はどこ？", a: ["秋田県", "宮城県", "山形県", "新潟県"], c: 3 },
+                                { q: "自動車の生産が世界的に有名な、中京工業地帯の中心的な県はどこ？", a: ["愛知県", "三重県", "静岡県", "神奈川県"], c: 0 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // ELEMENTARY SCHOOL 6TH GRADE
+            elem_6: {
+                name: "小学6年",
+                math: {
+                    title: "算数の塔",
+                    units: {
+                        fraction_calc: {
+                            name: "分数の掛け算・割り算",
+                            questions: [
+                                { q: "2/3 × 3/4 の計算結果は？", a: ["5/7", "8/9", "1/2", "6/12"], c: 2 },
+                                { q: "4/5 ÷ 2/3 の計算結果は？", a: ["6/5", "8/15", "10/12", "5/6"], c: 0 }
+                            ]
+                        },
+                        ratios: {
+                            name: "比とその利用",
+                            questions: [
+                                { q: "比の式 4 : 5 ＝ x : 15 のとき、x の値はいくつ？", a: ["8", "10", "12", "14"], c: 2 },
+                                { q: "比 24 : 36 を最も簡単な整数の比に表すと？", a: ["12:18", "4:6", "2:3", "3:4"], c: 2 }
+                            ]
+                        }
+                    }
+                },
+                science: {
+                    title: "理科の森",
+                    units: {
+                        bodies: {
+                            name: "人の体のつくりと呼吸",
+                            questions: [
+                                { q: "吐き出す空気に多く含まれていて、石灰水を白く濁らせる気体は何？", a: ["酸素", "窒素", "二酸化炭素", "水素"], c: 2 },
+                                { q: "口から食べた食べ物は、食道・胃を通ったあとどこに送られる？", a: ["心臓", "肺", "小腸", "気管"], c: 2 }
+                            ]
+                        }
+                    }
+                },
+                social: {
+                    title: "社会の大地",
+                    units: {
+                        history_japan: {
+                            name: "日本の歴史 (戦国・江戸・明治)",
+                            questions: [
+                                { q: "1582年、本能寺の変で織田信長を倒した人物はだれ？", a: ["豊臣秀吉", "明智光秀", "徳川家康", "武田信玄"], c: 1 },
+                                { q: "鎖国をしていた日本を、ペリーが黒船で来航して開国させた年は西暦何年？", a: ["1603年", "1853年", "1868年", "1945年"], c: 1 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // MIDDLE SCHOOL 1ST GRADE
+            mid_1: {
+                name: "中学1年",
+                math: {
+                    title: "数学の塔",
+                    units: {
+                        neg_pos: {
+                            name: "正の数・負の数",
+                            questions: [
+                                { q: "(−3) ＋ (−5) の計算結果は？", a: ["2", "−2", "8", "−8"], c: 3 },
+                                { q: "(−4) × (−6) の計算結果は？", a: ["24", "−24", "10", "−10"], c: 0 },
+                                { q: "3 − (−7) の計算結果は？", a: ["−4", "4", "10", "−10"], c: 2 }
+                            ]
+                        },
+                        equations_1: {
+                            name: "一元一次方程式",
+                            questions: [
+                                { q: "方程式 3x ＋ 7 ＝ 16 の解 (xの値) は？", a: ["3", "4", "5", "6"], c: 0 },
+                                { q: "方程式 2x − 5 ＝ x ＋ 3 の解 (xの値) は？", a: ["2", "4", "8", "10"], c: 2 }
+                            ]
+                        }
+                    }
+                },
+                english: {
+                    title: "英語の異界街",
+                    units: {
+                        be_verbs: {
+                            name: "be動詞と一般動詞",
+                            questions: [
+                                { q: "「私は野球選手です」 I ( ) a baseball player. に入る言葉は？", a: ["am", "are", "is", "be"], c: 0 },
+                                { q: "「彼はテニスをします」 He ( ) tennis. に入る言葉は？", a: ["play", "plays", "playing", "played"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                science: {
+                    title: "理科の森",
+                    units: {
+                        substances: {
+                            name: "身の回りの物質と気体",
+                            questions: [
+                                { q: "二酸化マンガンにうすい過酸化水素水を加えると発生する気体は何？", a: ["水素", "二酸化炭素", "酸素", "アンモニア"], c: 2 },
+                                { q: "水に非常によく溶け、刺激臭があり、水溶液がアルカリ性を示す気体は何？", a: ["酸素", "二酸化炭素", "水素", "アンモニア"], c: 3 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // MIDDLE SCHOOL 2ND GRADE
+            mid_2: {
+                name: "中学2年",
+                math: {
+                    title: "数学の塔",
+                    units: {
+                        simultaneous: {
+                            name: "連立方程式",
+                            questions: [
+                                { q: "連立方程式 x + y = 5,  2x + y = 7 の解 (x, y) は？", a: ["(1, 4)", "(2, 3)", "(3, 2)", "(4, 1)"], c: 1 },
+                                { q: "連立方程式 3x - y = 4, x + y = 8 の解 (x, y) は？", a: ["(2, 6)", "(3, 5)", "(4, 4)", "(5, 3)"], c: 1 }
+                            ]
+                        },
+                        linear_func: {
+                            name: "一次関数",
+                            questions: [
+                                { q: "一次関数 y = 2x - 3 の傾き(変化の割合)はいくつ？", a: ["2", "-3", "3", "-2"], c: 0 },
+                                { q: "2点 (1, 3), (3, 7) を通る直線の式は？", a: ["y = x + 2", "y = 2x + 1", "y = 3x - 1", "y = 2x - 1"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                english: {
+                    title: "英語の異界街",
+                    units: {
+                        infinites: {
+                            name: "不定詞 (to + 動詞の原形)",
+                            questions: [
+                                { q: "「私はサッカーをすることが好きです」 I like ( ) soccer. に入る言葉は？", a: ["play", "playing", "to play", "played"], c: 2 },
+                                { q: "「私は読むための本が欲しい」 I want a book ( ) read.", a: ["to", "for", "with", "in"], c: 0 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // MIDDLE SCHOOL 3RD GRADE
+            mid_3: {
+                name: "中学3年",
+                math: {
+                    title: "数学の塔",
+                    units: {
+                        roots: {
+                            name: "平方根 (ルート)",
+                            questions: [
+                                { q: "√18 − √8 を計算した結果は？", a: ["√10", "√2", "2√2", "3√2"], c: 1 },
+                                { q: "(√3 ＋ √2)(√3 − √2) を展開した結果は？", a: ["1", "5", "5 - 2√6", "√6"], c: 0 }
+                            ]
+                        },
+                        quadratic_eq: {
+                            name: "二次方程式",
+                            questions: [
+                                { q: "二次方程式 (x − 2)(x ＋ 3) ＝ 0 の解は？", a: ["x = 2, -3", "x = -2, 3", "x = 2, 3", "x = -2, -3"], c: 0 },
+                                { q: "二次方程式 x² − 5x ＋ 6 ＝ 0 の解は？", a: ["x = -2, -3", "x = 2, 3", "x = 1, 6", "x = -1, -6"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                english: {
+                    title: "英語の異界街",
+                    units: {
+                        present_perf: {
+                            name: "現在完了形 (have + 過去分詞)",
+                            questions: [
+                                { q: "「私は以前に京都を訪れたことがあります」 I ( ) visited Kyoto before.", a: ["was", "have", "am", "did"], c: 1 },
+                                { q: "動詞「write (書く)」の過去分詞形はどれ？", a: ["wrote", "writed", "written", "writing"], c: 2 }
+                            ]
+                        }
+                    }
+                },
+                social: {
+                    title: "社会の大地",
+                    units: {
+                        civics: {
+                            name: "公民 (日本国憲法と政治)",
+                            questions: [
+                                { q: "日本国憲法の三大原則は「国民主権」「平和主義」ともう一つ何？", a: ["自由平等", "三権分立", "基本的人権の尊重", "国際協調"], c: 2 },
+                                { q: "国会が持っている唯一の、国をつくる権限を何という？", a: ["立法権", "行政権", "司法権", "弾劾権"], c: 0 }
+                            ]
+                        }
+                    }
+                }
+            },
+            // HIGH SCHOOL / OTHER
+            high: {
+                name: "高校生・共通",
+                math: {
+                    title: "数学の塔",
+                    units: {
+                        quadratic_high: {
+                            name: "2次関数とグラフ",
+                            questions: [
+                                { q: "放物線 y = (x - 2)² + 3 の頂点の座標は？", a: ["(-2, 3)", "(2, 3)", "(2, -3)", "(-2, -3)"], c: 1 },
+                                { q: "関数 y = x² - 4x + 1 を平方完成した形はどれ？", a: ["y = (x-2)² - 3", "y = (x-2)² - 4", "y = (x-4)² - 3", "y = (x-2)² + 1"], c: 0 }
+                            ]
+                        },
+                        probability: {
+                            name: "場合の数と確率",
+                            questions: [
+                                { q: "赤球3個、白球2個が入った袋から同時に2個取り出すとき、2個とも赤球である確率は？", a: ["3/10", "3/5", "1/10", "2/5"], c: 0 },
+                                { q: "異なる4冊の本を本棚に1列に並べる並べ方は何通り？", a: ["12通り", "24通り", "16通り", "8通り"], c: 1 }
+                            ]
+                        }
+                    }
+                },
+                english: {
+                    title: "英語の異界街",
+                    units: {
+                        subjunctive_high: {
+                            name: "仮定法 (Subjunctive)",
+                            questions: [
+                                { q: "「もし私に時間があれば、そのパーティーに行くだろうに（実際はない）」 If I ( ) time, I would go to the party.", a: ["have", "had", "will have", "have had"], c: 1 },
+                                { q: "「まるで彼がすべてを知っているかのように話す」 He talks as if he ( ) everything.", a: ["knows", "knew", "known", "knowing"], c: 1 }
+                            ]
+                        }
+                    }
+                }
+            }
+        };
+
+        const MONSTERS = {
+            easy: [
+                { name: "プチモッチ", emoji: "🟢", maxHp: 30, atk: 8, exp: 15, gold: 15 },
+                { name: "見習いコウモリ", emoji: "🦇", maxHp: 35, atk: 10, exp: 20, gold: 18 }
+            ],
+            medium: [
+                { name: "勉強ギライゴブリン", emoji: "👹", maxHp: 65, atk: 14, exp: 40, gold: 35 },
+                { name: "知恵喰いラフレシア", emoji: "🌸", maxHp: 75, atk: 18, exp: 50, gold: 40 }
+            ],
+            hard: [
+                { name: "知の番人・ストーンゴーレム", emoji: "🗿", maxHp: 110, atk: 24, exp: 80, gold: 65 },
+                { name: "暗黒司書・スペルマスター", emoji: "🧙", maxHp: 125, atk: 28, exp: 100, gold: 80 }
+            ],
+            boss: [
+                { name: "無知の根源・ダークロード", emoji: "👑🐉", maxHp: 220, atk: 35, exp: 999, gold: 999 }
+            ]
+        };
+
+        const PLAYER_CLASSES = {
+            warrior: { name: "戦士", emoji: "🛡️", maxHp: 150, atk: 18, skill: "シールドバッシュ", desc: "敵の攻撃を完全に1回防ぎます。" },
+            mage: { name: "魔法使い", emoji: "⚡", maxHp: 80, atk: 28, skill: "魔力集中", desc: "次に正解したとき、ダメージが2倍になります。" },
+            scholar: { name: "学者", emoji: "🔬", maxHp: 110, atk: 16, skill: "検索の術", desc: "4つの選択肢のうち間違っているものを2つ消去します。" }
+        };
+
+        // Fallback generic questions for custom grade/subject combinations
+        const GENERIC_QUESTIONS = {
+            math: [
+                { q: "計算をしてください： 9 × 8 - 12 = ?", a: ["60", "56", "64", "72"], c: 0 },
+                { q: "一辺が 6 cm の正方形の面積は何 cm²？", a: ["24", "36", "12", "48"], c: 1 },
+                { q: "x + 5 = 12 のとき、x の値は？", a: ["6", "7", "8", "9"], c: 1 }
+            ],
+            science: [
+                { q: "植物が日光を浴びて栄養を作る働きを何という？", a: ["呼吸", "光合成", "蒸散", "発芽"], c: 1 },
+                { q: "水が沸騰するときの温度は何℃？", a: ["50℃", "0℃", "100℃", "200℃"], c: 2 }
+            ],
+            english: [
+                { q: "くだものの「リンゴ」を英語で書くと？", a: ["Apple", "Orange", "Banana", "Grape"], c: 0 },
+                { q: "「ありがとう」と言われたときの一般的な返事は？", a: ["Me too", "You're welcome", "Yes, please", "Good job"], c: 1 }
+            ],
+            japanese: [
+                { q: "身近にあるものほど、かえって気づきにくいことの例え。「灯台（ ）」", a: ["下暗し", "元暗し", "上明るし", "夜暗し"], c: 0 },
+                { q: "「一石二鳥」の「鳥」はいくつ？", a: ["一羽", "二羽", "三羽", "四羽"], c: 1 }
+            ],
+            social: [
+                { q: "日本で一番高い山はどこ？", a: ["富士山", "北岳", "槍ヶ岳", "阿蘇山"], c: 0 },
+                { q: "鎌倉幕府を開き、征夷大将軍となった人物は？", a: ["織田信長", "源頼朝", "足利尊氏", "徳川家康"], c: 1 }
+            ]
+        };
+
+        let gameState = {
+            currentScreen: 'screen-title',
+            player: {
+                name: '勇者',
+                class: 'warrior',
+                grade: 'elem_4', // Default grade (小学4年)
+                lv: 1,
+                exp: 0,
+                maxHp: 150,
+                hp: 150,
+                atk: 18,
+                gold: 50,
+                potions: 1,
+                shieldActive: false,
+                focusActive: false,
+                skillCooldown: false,
+                clearedUnits: [] // Stores uniquely cleared Unit IDs: 'grade_subject_unit'
+            },
+            battle: {
+                subject: 'math',
+                unitId: '',
+                difficulty: 'easy',
+                monster: null,
+                questionIndex: 0,
+                questionList: [],
+                currentQuestion: null,
+                eliminatedChoices: []
+            }
+        };
+
+        // SCREEN CHANGER
+        function changeScreen(screenId) {
+            document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            gameState.currentScreen = screenId;
+            updateHeader();
+        }
+
+        // UPDATE HEADER INFO
+        function updateHeader() {
+            const summary = document.getElementById('player-summary');
+            if (gameState.currentScreen === 'screen-title' || gameState.currentScreen === 'screen-character' || gameState.currentScreen === 'screen-grade') {
+                summary.classList.add('hidden');
+            } else {
+                summary.classList.remove('hidden');
+                document.getElementById('summary-name').innerText = gameState.player.name;
+                document.getElementById('summary-class').innerText = PLAYER_CLASSES[gameState.player.class].name;
+                document.getElementById('summary-lv').innerText = gameState.player.lv;
+                document.getElementById('summary-gold').innerText = gameState.player.gold;
+                
+                // Set grade label in header
+                const gradeInfo = QUESTIONS_DB[gameState.player.grade];
+                document.getElementById('summary-grade').innerText = gradeInfo ? gradeInfo.name : "冒険者";
+            }
+        }
+
+        // CLASS SELECTION
+        let selectedClassId = 'warrior';
+        function selectClass(classId) {
+            selectedClassId = classId;
+            document.querySelectorAll('.class-card').forEach(card => {
+                card.classList.remove('border-amber-400', 'bg-slate-800');
+                card.classList.add('border-slate-700', 'bg-slate-800/50');
+            });
+            event.currentTarget.classList.add('border-amber-400', 'bg-slate-800');
+            event.currentTarget.classList.remove('border-slate-700', 'bg-slate-800/50');
+            playSound('coin');
+        }
+
+        // CONFIRM CHARACTER CREATION
+        function confirmCharacter() {
+            const nameInput = document.getElementById('player-name-input').value.trim();
+            const errorText = document.getElementById('character-error');
+            
+            if (!nameInput) {
+                errorText.innerText = '名前を入力してください！';
+                playSound('wrong');
+                return;
+            }
+            if (nameInput.length > 8) {
+                errorText.innerText = '名前は8文字以内にしてください。';
+                playSound('wrong');
+                return;
+            }
+
+            errorText.innerText = '';
+            
+            // Set Player Core Attributes
+            const classInfo = PLAYER_CLASSES[selectedClassId];
+            gameState.player.name = nameInput;
+            gameState.player.class = selectedClassId;
+            gameState.player.maxHp = classInfo.maxHp;
+            gameState.player.hp = classInfo.maxHp;
+            gameState.player.atk = classInfo.atk;
+            gameState.player.gold = 50;
+            gameState.player.potions = 1;
+            gameState.player.exp = 0;
+            gameState.player.lv = 1;
+            gameState.player.clearedUnits = [];
+
+            playSound('levelup');
+            // Transition directly to grade selection
+            changeScreen('screen-grade');
+        }
+
+        // GRADE SELECT
+        function selectGrade(gradeId) {
+            gameState.player.grade = gradeId;
+            playSound('coin');
+            
+            // Apply grade specific titles if needed
+            const gradeInfo = QUESTIONS_DB[gradeId];
+            const mathTitle = document.getElementById('subject-math-title');
+            if (gradeId.startsWith('mid_') || gradeId === 'high') {
+                mathTitle.innerText = "数学の塔";
+            } else {
+                mathTitle.innerText = "算数の塔";
+            }
+
+            // Move to Map
+            changeScreen('screen-map');
+            updateMapProgress();
+        }
+
+        // UPDATE PROGRESS BAR & UNLOCKS
+        function updateMapProgress() {
+            const subjects = ['math', 'science', 'english', 'japanese', 'social'];
+            let clearedCount = 0;
+
+            subjects.forEach(sub => {
+                const bar = document.getElementById(`progress-${sub}`);
+                
+                // Count units cleared for this grade & subject
+                const gradeUnits = getUnitKeysForSubject(gameState.player.grade, sub);
+                if (gradeUnits.length === 0) {
+                    bar.style.width = '0%';
+                    return;
+                }
+
+                let clearedForThisSub = 0;
+                gradeUnits.forEach(uKey => {
+                    const uniqueKey = `${gameState.player.grade}_${sub}_${uKey}`;
+                    if (gameState.player.clearedUnits.includes(uniqueKey)) {
+                        clearedForThisSub++;
+                    }
+                });
+
+                const pct = Math.floor((clearedForThisSub / gradeUnits.length) * 100);
+                bar.style.width = `${pct}%`;
+
+                if (pct >= 100) {
+                    bar.classList.add('bg-emerald-400');
+                    clearedCount++;
+                } else {
+                    bar.classList.remove('bg-emerald-400');
+                }
+            });
+
+            // Boss Castle Unlock (at least 3 subjects fully cleared)
+            const bossCastle = document.getElementById('boss-castle');
+            const bossLockLabel = document.getElementById('boss-lock-label');
+            if (clearedCount >= 3) {
+                bossCastle.classList.remove('opacity-50', 'pointer-events-none');
+                bossCastle.classList.add('cursor-pointer', 'border-red-500', 'bg-red-950/20', 'hover:bg-red-950/40');
+                bossLockLabel.innerHTML = '🔥 解放中';
+                bossLockLabel.className = 'absolute top-1 right-2 text-[10px] text-emerald-400 font-bold';
+            } else {
+                bossCastle.classList.add('opacity-50', 'pointer-events-none');
+                bossCastle.classList.remove('cursor-pointer', 'border-red-500', 'bg-red-950/20', 'hover:bg-red-950/40');
+                bossLockLabel.innerHTML = '🔒 あと' + (3 - clearedCount) + 'つの教科マスターで開放';
+                bossLockLabel.className = 'absolute top-1 right-2 text-[10px] text-red-400 font-bold';
+            }
+        }
+
+        // HELPER TO EXTRACT UNITS FOR GRADE/SUBJECT
+        function getUnitKeysForSubject(gradeId, subId) {
+            const gradeData = QUESTIONS_DB[gradeId];
+            if (gradeData && gradeData[subId] && gradeData[subId].units) {
+                return Object.keys(gradeData[subId].units);
+            }
+            return [];
+        }
+
+        // SELECT SUBJECT - Leads to Unit Selection screen
+        function selectSubject(subjectId) {
+            playSound('coin');
+            
+            if (subjectId === 'boss') {
+                // Instantly start Final Boss Battle
+                startBattle('boss', 'final');
+                return;
+            }
+
+            gameState.battle.subject = subjectId;
+
+            // Prepare screen
+            const container = document.getElementById('units-list-container');
+            container.innerHTML = ''; // Reset list
+
+            let subjectLabel = "教科";
+            if (subjectId === 'math') subjectLabel = (gameState.player.grade.startsWith('mid_') || gameState.player.grade === 'high') ? "数学" : "算数";
+            else if (subjectId === 'science') subjectLabel = "理科";
+            else if (subjectId === 'english') subjectLabel = "英語";
+            else if (subjectId === 'japanese') subjectLabel = "国語";
+            else if (subjectId === 'social') subjectLabel = "社会";
+
+            document.getElementById('unit-screen-title').innerText = `${subjectLabel}の修行単元を選ぼう`;
+
+            // Retrieve Units for current grade and subject
+            const gradeData = QUESTIONS_DB[gameState.player.grade];
+            let unitsObj = null;
+            if (gradeData && gradeData[subjectId]) {
+                unitsObj = gradeData[subjectId].units;
+            }
+
+            if (!unitsObj || Object.keys(unitsObj).length === 0) {
+                // If no specific unit exists for this grade/subject, supply a generic fallback
+                const genericBtn = document.createElement('button');
+                genericBtn.className = "flex justify-between items-center px-4 py-4 bg-slate-800 hover:bg-slate-700 border-2 border-slate-700 hover:border-amber-400 rounded-xl transition text-left font-bold";
+                genericBtn.onclick = () => startBattle(subjectId, 'generic');
+                genericBtn.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-slate-100 text-sm">基礎試練：全体総合</span>
+                        <span class="text-slate-400 text-xs font-normal mt-1">学年の基礎を固める総合テスト問題</span>
+                    </div>
+                    <span class="text-xs bg-indigo-950 text-indigo-300 py-1 px-2 rounded-lg border border-indigo-700">通常試練</span>
+                `;
+                container.appendChild(genericBtn);
+            } else {
+                // Populate specific units
+                Object.keys(unitsObj).forEach(uKey => {
+                    const unit = unitsObj[uKey];
+                    const uniqueKey = `${gameState.player.grade}_${subjectId}_${uKey}`;
+                    const isCleared = gameState.player.clearedUnits.includes(uniqueKey);
+
+                    const unitBtn = document.createElement('button');
+                    unitBtn.className = `flex justify-between items-center px-4 py-4 ${isCleared ? 'bg-slate-900 border-emerald-500 hover:border-emerald-400' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 hover:border-amber-400'} border-2 rounded-xl transition text-left font-bold`;
+                    unitBtn.onclick = () => startBattle(subjectId, uKey);
+                    
+                    unitBtn.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-slate-100 text-sm">${unit.name}</span>
+                            <span class="text-slate-400 text-xs font-normal mt-1">${unit.questions.length}問のクイズを収録</span>
+                        </div>
+                        <span class="text-xs ${isCleared ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-slate-900 text-amber-400 border-slate-750'} py-1 px-2.5 rounded-lg border">
+                            ${isCleared ? '🌟 討伐済' : '⚔️ 未挑戦'}
+                        </span>
+                    `;
+                    container.appendChild(unitBtn);
+                });
+            }
+
+            changeScreen('screen-unit');
+        }
+
+        // START THE BATTLE FOR SPECIFIC GRADE, SUBJECT AND UNIT
+        function startBattle(subjectId, unitKey) {
+            gameState.battle.subject = subjectId;
+            gameState.battle.unitId = unitKey;
+
+            // 1. Load Question Set
+            let finalQSet = [];
+            let isFallback = false;
+
+            if (subjectId === 'boss') {
+                gameState.battle.difficulty = 'boss';
+                // Pick random boss questions across multiple structures
+                const bossPool = QUESTIONS_DB.high.math.units.quadratic_high.questions
+                    .concat(QUESTIONS_DB.mid_3.math.units.roots.questions)
+                    .concat(QUESTIONS_DB.mid_3.social.units.civics.questions);
+                finalQSet = shuffle([...bossPool]);
+            } else if (unitKey === 'generic') {
+                gameState.battle.difficulty = 'medium';
+                finalQSet = GENERIC_QUESTIONS[subjectId] ? [...GENERIC_QUESTIONS[subjectId]] : [...GENERIC_QUESTIONS['math']];
+                isFallback = true;
+            } else {
+                const gradeData = QUESTIONS_DB[gameState.player.grade];
+                if (gradeData && gradeData[subjectId] && gradeData[subjectId].units[unitKey]) {
+                    finalQSet = [...gradeData[subjectId].units[unitKey].questions];
+                } else {
+                    finalQSet = GENERIC_QUESTIONS[subjectId] ? [...GENERIC_QUESTIONS[subjectId]] : [...GENERIC_QUESTIONS['math']];
+                    isFallback = true;
+                }
+                
+                // Set Difficulty dynamically based on grade structure
+                if (gameState.player.grade.startsWith('elem_1') || gameState.player.grade.startsWith('elem_2')) {
+                    gameState.battle.difficulty = 'easy';
+                } else if (gameState.player.grade.startsWith('elem_')) {
+                    gameState.battle.difficulty = 'medium';
+                } else {
+                    gameState.battle.difficulty = 'hard';
+                }
+            }
+
+            gameState.battle.questionList = shuffle(finalQSet);
+            gameState.battle.questionIndex = 0;
+
+            // 2. Summon Monster Matching Difficulty
+            const monsterPool = MONSTERS[gameState.battle.difficulty];
+            const chosenMonster = monsterPool[Math.floor(Math.random() * monsterPool.length)];
+            
+            gameState.battle.monster = {
+                name: chosenMonster.name,
+                emoji: chosenMonster.emoji,
+                maxHp: chosenMonster.maxHp,
+                hp: chosenMonster.maxHp,
+                atk: chosenMonster.atk,
+                exp: chosenMonster.exp,
+                gold: chosenMonster.gold
+            };
+
+            // Reset player temporary state
+            gameState.player.skillCooldown = false;
+            gameState.player.shieldActive = false;
+            gameState.player.focusActive = false;
+
+            // Jump to Battle screen
+            changeScreen('screen-battle');
+            initBattleTurn();
+        }
+
+        // Shuffle Utility
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // BATTLE TURN INITIALIZER
+        function initBattleTurn() {
+            let subjectName = "修行の地";
+            let unitName = "基礎試練";
+
+            // Subject label
+            if (gameState.battle.subject === 'math') subjectName = (gameState.player.grade.startsWith('mid_') || gameState.player.grade === 'high') ? "数学" : "算数";
+            else if (gameState.battle.subject === 'science') subjectName = "理科";
+            else if (gameState.battle.subject === 'english') subjectName = "英語";
+            else if (gameState.battle.subject === 'japanese') subjectName = "国語";
+            else if (gameState.battle.subject === 'social') subjectName = "社会";
+            else if (gameState.battle.subject === 'boss') subjectName = "魔王城";
+
+            // Unit label
+            if (gameState.battle.subject !== 'boss') {
+                const gradeData = QUESTIONS_DB[gameState.player.grade];
+                if (gradeData && gradeData[gameState.battle.subject] && gradeData[gameState.battle.subject].units[gameState.battle.unitId]) {
+                    unitName = gradeData[gameState.battle.subject].units[gameState.battle.unitId].name;
+                } else if (gameState.battle.unitId === 'generic') {
+                    unitName = "総合基礎試練";
+                }
+            } else {
+                unitName = "最終試練 (ダークロード)";
+            }
+
+            document.getElementById('battle-stage-title').innerText = `${subjectName}：${unitName} (${gameState.battle.questionIndex + 1}問目)`;
+            document.getElementById('battle-difficulty').innerText = `LEVEL: ${gameState.battle.difficulty.toUpperCase()}`;
+
+            // Reset Scholar options
+            gameState.battle.eliminatedChoices = [];
+
+            // Fetch current question
+            const qList = gameState.battle.questionList;
+            if (gameState.battle.questionIndex >= qList.length) {
+                // Loop questions if run out during battle
+                gameState.battle.questionIndex = 0;
+            }
+            gameState.battle.currentQuestion = qList[gameState.battle.questionIndex];
+
+            // Refresh Visuals
+            updateBattleStats();
+
+            const q = gameState.battle.currentQuestion;
+            document.getElementById('battle-question').innerText = q.q;
+
+            // Generate answer choice buttons
+            const btnContainer = document.getElementById('choices-container');
+            btnContainer.innerHTML = '';
+
+            const labels = ['A', 'B', 'C', 'D'];
+            q.a.forEach((choiceText, index) => {
+                const button = document.createElement('button');
+                button.id = `choice-${index}`;
+                button.onclick = () => submitAnswer(index);
+                button.className = "choice-btn px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-left font-semibold text-xs md:text-sm transition flex items-center gap-2 hover:border-amber-400 active:scale-[0.98] w-full";
+                button.innerHTML = `
+                    <span class="bg-slate-700 text-slate-300 w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0">${labels[index]}</span>
+                    <span class="choice-text text-slate-100">${choiceText}</span>
+                `;
+                btnContainer.appendChild(button);
+            });
+
+            // Update items & skill panels
+            document.getElementById('potion-count').innerText = gameState.player.potions;
+            
+            const btnSkill = document.getElementById('btn-special-skill');
+            btnSkill.innerText = `⚡ ${PLAYER_CLASSES[gameState.player.class].skill} (${gameState.player.skillCooldown ? '使用不可' : '可能'})`;
+            if (gameState.player.skillCooldown) {
+                btnSkill.classList.add('opacity-50', 'pointer-events-none');
+            } else {
+                btnSkill.classList.remove('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        // RE-RENDER STATS
+        function updateBattleStats() {
+            // Player stats
+            document.getElementById('battle-player-name').innerText = gameState.player.name;
+            document.getElementById('battle-player-avatar').innerText = PLAYER_CLASSES[gameState.player.class].emoji;
+            document.getElementById('battle-player-hp-txt').innerText = `${gameState.player.hp}/${gameState.player.maxHp}`;
+            const playerHpPct = Math.max(0, (gameState.player.hp / gameState.player.maxHp) * 100);
+            const pBar = document.getElementById('battle-player-hp-bar');
+            pBar.style.width = `${playerHpPct}%`;
+            
+            if (playerHpPct < 30) {
+                pBar.className = "bg-gradient-to-r from-red-500 to-rose-400 h-full rounded-full transition-all duration-300";
+            } else {
+                pBar.className = "bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300";
+            }
+
+            // Shield / Focus icon
+            const shieldBadge = document.getElementById('player-status-badge');
+            if (gameState.player.shieldActive) {
+                shieldBadge.classList.remove('hidden');
+                shieldBadge.innerText = '🛡️ 防御シールド中';
+            } else if (gameState.player.focusActive) {
+                shieldBadge.classList.remove('hidden');
+                shieldBadge.innerText = '🔮 攻撃2倍チャージ';
+            } else {
+                shieldBadge.classList.add('hidden');
+            }
+
+            // Monster stats
+            const m = gameState.battle.monster;
+            document.getElementById('battle-monster-name').innerText = m.name;
+            document.getElementById('battle-monster-avatar').innerText = m.emoji;
+            document.getElementById('battle-monster-hp-txt').innerText = `${m.hp}/${m.maxHp}`;
+            const monsterHpPct = Math.max(0, (m.hp / m.maxHp) * 100);
+            document.getElementById('battle-monster-hp-bar').style.width = `${monsterHpPct}%`;
+        }
+
+        // SUBMIT AND EVALUATE ANSWER
+        function submitAnswer(chosenIdx) {
+            const buttons = document.querySelectorAll('.choice-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const q = gameState.battle.currentQuestion;
+            const isCorrect = (chosenIdx === q.c);
+
+            // Turn coloring highlights
+            buttons.forEach((btn, idx) => {
+                if (idx === q.c) {
+                    btn.classList.add('bg-emerald-950/80', 'border-emerald-500');
+                    btn.classList.remove('bg-slate-800');
+                } else if (idx === chosenIdx) {
+                    btn.classList.add('bg-red-950/80', 'border-red-500');
+                    btn.classList.remove('bg-slate-800');
+                }
+            });
+
+            if (isCorrect) {
+                playSound('correct');
+                triggerCombatAnimation('player-attack');
+                
+                setTimeout(() => {
+                    let dmg = gameState.player.atk;
+                    if (gameState.player.focusActive) {
+                        dmg *= 2;
+                        gameState.player.focusActive = false;
+                    }
+                    
+                    gameState.battle.monster.hp = Math.max(0, gameState.battle.monster.hp - dmg);
+                    updateBattleStats();
+                    triggerHitVisual('monster-unit');
+
+                    // Check win
+                    if (gameState.battle.monster.hp <= 0) {
+                        setTimeout(() => handleBattleVictory(), 600);
+                    } else {
+                        gameState.battle.questionIndex++;
+                        setTimeout(() => {
+                            initBattleTurn();
+                        }, 1200);
+                    }
+                }, 600);
+
+            } else {
+                playSound('wrong');
+                triggerCombatAnimation('monster-attack');
+
+                setTimeout(() => {
+                    let dmg = gameState.battle.monster.atk;
+                    if (gameState.player.shieldActive) {
+                        dmg = 0;
+                        gameState.player.shieldActive = false;
+                        showMessageBanner("🛡️ シールド!", "戦士の盾が敵の攻撃を完全に防いだ！");
+                        playSound('heal');
+                    } else {
+                        gameState.player.hp = Math.max(0, gameState.player.hp - dmg);
+                        playSound('hurt');
+                    }
+
+                    updateBattleStats();
+                    triggerHitVisual('player-unit');
+
+                    // Check gameover
+                    if (gameState.player.hp <= 0) {
+                        setTimeout(() => handleBattleDefeat(), 600);
+                    } else {
+                        gameState.battle.questionIndex++;
+                        setTimeout(() => {
+                            initBattleTurn();
+                        }, 1500);
+                    }
+                }, 600);
+            }
+        }
+
+        // VISUAL EFFECTS FOR BATTLE
+        function triggerCombatAnimation(type) {
+            const playerUnit = document.getElementById('player-unit');
+            const monsterUnit = document.getElementById('monster-unit');
+
+            if (type === 'player-attack') {
+                playerUnit.style.transform = 'translateX(50px) scale(1.15)';
+                setTimeout(() => {
+                    playerUnit.style.transform = 'none';
+                }, 150);
+            } else if (type === 'monster-attack') {
+                monsterUnit.style.transform = 'translateX(-50px) scale(1.15)';
+                setTimeout(() => {
+                    monsterUnit.style.transform = 'none';
+                }, 150);
+            }
+        }
+
+        function triggerHitVisual(unitId) {
+            const unit = document.getElementById(unitId);
+            unit.classList.add('animate-shake');
+            
+            const slash = document.createElement('div');
+            slash.className = 'slash';
+            const randomRot = Math.random() > 0.5 ? 45 : -45;
+            slash.style.transform = `rotate(${randomRot}deg)`;
+            slash.style.left = `${unit.offsetLeft + unit.offsetWidth/2 - 75}px`;
+            slash.style.top = `${unit.offsetTop + unit.offsetHeight/2 - 25}px`;
+            
+            document.getElementById('combat-area').appendChild(slash);
+            document.getElementById('combat-area').classList.add('animate-flash-red');
+
+            setTimeout(() => {
+                unit.classList.remove('animate-shake');
+                slash.remove();
+                document.getElementById('combat-area').classList.remove('animate-flash-red');
+            }, 400);
+        }
+
+        // SPECIAL ABILITY TRIGGERS
+        function useSpecialSkill() {
+            if (gameState.player.skillCooldown) return;
+
+            const playerClass = gameState.player.class;
+
+            if (playerClass === 'warrior') {
+                gameState.player.shieldActive = true;
+                gameState.player.skillCooldown = true;
+                playSound('heal');
+                showMessageBanner("🛡️ シールドバッシュ", "次の一撃を防ぐ聖なる盾を展開した！");
+                updateBattleStats();
+            } else if (playerClass === 'mage') {
+                gameState.player.focusActive = true;
+                gameState.player.skillCooldown = true;
+                playSound('heal');
+                showMessageBanner("🔮 魔力集中", "魔力が凝縮された！次の正解時の攻撃力が2倍になる！");
+                updateBattleStats();
+            } else if (playerClass === 'scholar') {
+                const q = gameState.battle.currentQuestion;
+                const incorrectIndices = [];
+                q.a.forEach((_, idx) => {
+                    if (idx !== q.c) incorrectIndices.push(idx);
+                });
+
+                const toEliminate = shuffle(incorrectIndices).slice(0, 2);
+                gameState.battle.eliminatedChoices = toEliminate;
+                
+                toEliminate.forEach(idx => {
+                    const btn = document.getElementById(`choice-${idx}`);
+                    if (btn) {
+                        btn.style.opacity = '0.2';
+                        btn.style.pointerEvents = 'none';
+                        btn.disabled = true;
+                    }
+                });
+
+                gameState.player.skillCooldown = true;
+                playSound('heal');
+                showMessageBanner("📜 検索の術", "学識により選択肢が2つまで絞られた！");
+            }
+
+            const btnSkill = document.getElementById('btn-special-skill');
+            btnSkill.innerText = `⚡ ${PLAYER_CLASSES[gameState.player.class].skill} (使用不可)`;
+            btnSkill.classList.add('opacity-50', 'pointer-events-none');
+        }
+
+        // HEALING POTION
+        function usePotion() {
+            if (gameState.player.potions <= 0) {
+                showMessageBanner("ポーション不足", "回復薬がありません。道具屋で購入してください！");
+                return;
+            }
+            if (gameState.player.hp >= gameState.player.maxHp) {
+                showMessageBanner("元気いっぱい", "ライフは既に満タンです！");
+                return;
+            }
+
+            gameState.player.potions--;
+            gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + 50);
+            playSound('heal');
+            updateBattleStats();
+            
+            document.getElementById('potion-count').innerText = gameState.player.potions;
+            showMessageBanner("🧪 回復薬を使用", "ライフが 50 ポイント回復した！");
+        }
+
+        function escapeBattle() {
+            playSound('wrong');
+            changeScreen('screen-map');
+        }
+
+        // BATTLE SUCCESSFUL
+        function handleBattleVictory() {
+            playSound('levelup');
+            
+            const monster = gameState.battle.monster;
+            const sub = gameState.battle.subject;
+            const unit = gameState.battle.unitId;
+
+            // Mark unit clear for uniquely identifying clear targets
+            const uniqueKey = `${gameState.player.grade}_${sub}_${unit}`;
+            if (sub !== 'boss' && !gameState.player.clearedUnits.includes(uniqueKey)) {
+                gameState.player.clearedUnits.push(uniqueKey);
+            }
+
+            // Pay rewards
+            gameState.player.gold += monster.gold;
+            gameState.player.exp += monster.exp;
+
+            let levelUpMsg = "";
+            const nextLevelExp = gameState.player.lv * 100;
+            if (gameState.player.exp >= nextLevelExp) {
+                gameState.player.lv++;
+                gameState.player.exp -= nextLevelExp;
+                gameState.player.maxHp += 15;
+                gameState.player.hp = gameState.player.maxHp;
+                gameState.player.atk += 4;
+                levelUpMsg = `<br><span class="text-yellow-400 font-bold">🎉 レベルアップ！ Lv.${gameState.player.lv} になった！(最大HP+15, 攻撃力+4)</span>`;
+                playSound('levelup');
+            }
+
+            let isFinalBoss = (sub === 'boss');
+            let bodyText = `
+                魔物 <strong>${monster.name}</strong> を知恵の力で討伐した！<br><br>
+                💰 獲得ゴールド: +${monster.gold} G<br>
+                ✨ 獲得経験値: +${monster.exp} EXP
+                ${levelUpMsg}
+            `;
+
+            if (isFinalBoss) {
+                bodyText = `
+                    🌌 おめでとうございます！<br>
+                    ついに魔王 <strong>${monster.name}</strong> を撃破し、賢者の試練を全てクリアしました！<br><br>
+                    勉強によって鍛えられた圧倒的な知恵の力で、世界に永久の平和がもたらされました！<br>
+                    キミこそ真の賢者です。
+                `;
+                showModalBanner("👑 GRAND VICTORY", bodyText, "👑", () => {
+                    location.reload();
+                });
+            } else {
+                showModalBanner("戦闘勝利！", bodyText, "🏆", () => {
+                    // Back to units screen to choose another unit
+                    changeScreen('screen-map');
+                    updateMapProgress();
+                });
+            }
+        }
+
+        // BATTLE LOST
+        function handleBattleDefeat() {
+            playSound('hurt');
+
+            const bodyText = `
+                目の前が真っ暗になった...<br>
+                力尽きてしまった。勉強の塔を一度脱出して、傷を癒そう。<br><br>
+                ※ライフは最大まで回復しますが、ゴールドを 10G 失いました。
+            `;
+
+            gameState.player.hp = gameState.player.maxHp;
+            gameState.player.gold = Math.max(0, gameState.player.gold - 10);
+
+            showModalBanner("敗北...", bodyText, "💀", () => {
+                changeScreen('screen-map');
+                updateMapProgress();
+            });
+        }
+
+        // SHOW MAIN MESSAGE MODAL
+        function showModalBanner(title, body, icon, callback) {
+            const modal = document.getElementById('message-modal');
+            document.getElementById('msg-title').innerHTML = title;
+            document.getElementById('msg-body').innerHTML = body;
+            document.getElementById('msg-icon').innerText = icon;
+
+            const btn = document.getElementById('msg-btn');
+            btn.onclick = () => {
+                modal.classList.add('hidden');
+                if (callback) callback();
+            };
+            modal.classList.remove('hidden');
+        }
+
+        // NON-BLOCKING TOP NOTIFICATION BANNER
+        function showMessageBanner(title, desc) {
+            const tempBanner = document.createElement('div');
+            tempBanner.className = "fixed top-4 left-1/2 -translate-x-1/2 bg-slate-800 border-2 border-amber-500 rounded-xl px-6 py-3 shadow-2xl flex flex-col items-center gap-1 z-50 text-center animate-bounce-gentle";
+            tempBanner.innerHTML = `
+                <span class="font-bold text-amber-400 text-sm">${title}</span>
+                <span class="text-slate-200 text-xs">${desc}</span>
+            `;
+            document.body.appendChild(tempBanner);
+            setTimeout(() => {
+                tempBanner.remove();
+            }, 3000);
+        }
+
+        // SHOP MODAL TRIGGERS
+        function openShop() {
+            playSound('coin');
+            document.getElementById('shop-gold').innerText = gameState.player.gold;
+            document.getElementById('shop-modal').classList.remove('hidden');
+        }
+
+        function closeShop() {
+            playSound('coin');
+            document.getElementById('shop-modal').classList.add('hidden');
+            updateHeader();
+        }
+
+        function buyItem(itemId, price) {
+            if (gameState.player.gold < price) {
+                showMessageBanner("ゴールド不足", "お金が足りないようです...");
+                playSound('wrong');
+                return;
+            }
+
+            gameState.player.gold -= price;
+            playSound('coin');
+
+            if (itemId === 'potion') {
+                gameState.player.potions++;
+                showMessageBanner("購入完了", "回復薬 (HPポーション) を1つ手に入れた！");
+            } else if (itemId === 'steak') {
+                gameState.player.maxHp += 15;
+                gameState.player.hp = gameState.player.maxHp;
+                showMessageBanner("購入完了", "特製ステーキを食べた！最大HPが +15 上がった！");
+            }
+
+            document.getElementById('shop-gold').innerText = gameState.player.gold;
+            updateHeader();
+        }
+
+        // STATUS MODAL TRIGGERS
+        function openStatus() {
+            playSound('coin');
+            document.getElementById('status-name').innerText = gameState.player.name;
+            document.getElementById('status-class').innerText = PLAYER_CLASSES[gameState.player.class].name;
+            document.getElementById('status-lv').innerText = gameState.player.lv;
+            document.getElementById('status-exp').innerText = `${gameState.player.exp} / ${gameState.player.lv * 100}`;
+            document.getElementById('status-hp-txt').innerText = `${gameState.player.hp} / ${gameState.player.maxHp}`;
+            
+            const gradeInfo = QUESTIONS_DB[gameState.player.grade];
+            document.getElementById('status-grade').innerText = gradeInfo ? gradeInfo.name : "未選択";
+
+            const hpPct = Math.min(100, (gameState.player.hp / gameState.player.maxHp) * 100);
+            document.getElementById('status-hp-bar').style.width = `${hpPct}%`;
+            document.getElementById('status-atk').innerText = gameState.player.atk;
+            document.getElementById('status-potion').innerText = `${gameState.player.potions} 個`;
+
+            document.getElementById('status-modal').classList.remove('hidden');
+        }
+
+        function closeStatus() {
+            playSound('coin');
+            document.getElementById('status-modal').classList.add('hidden');
+        }
+
+        // On load
+        window.onload = function() {
+            updateHeader();
+        }
+    </script>
+</body>
+</html>
