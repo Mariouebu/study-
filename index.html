@@ -98,7 +98,7 @@
             <h2 class="text-3xl md:text-5xl font-black text-amber-400 mb-4 tracking-widest retro-font drop-shadow-md">RPG勉強クエスト</h2>
             <p class="text-slate-300 max-w-md mx-auto mb-8 leading-relaxed text-sm md:text-base">
                 クイズに答えて魔物を倒す、学習型ファンタジーRPG！<br>
-                学年と単元を選んで、キミにぴったりの知恵の試練に挑もう！
+                学年と単元を選んで、キミにぴったりの知恵の試練に挑おう！
             </p>
             <div class="flex flex-col items-center gap-4">
                 <button onclick="changeScreen('screen-character')" class="retro-font px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xl rounded-xl shadow-[0_4px_20px_rgba(245,158,11,0.5)] border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0 w-64 text-center">
@@ -590,6 +590,19 @@
     </div>
 
     <!-- MESSAGE MODAL -->
+    <div id="message-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-4 border-amber-500 rounded-2xl w-full max-w-md p-6 text-center shadow-2xl relative animate-bounce-gentle" style="animation-iteration-count: 1; animation-duration: 0.5s;">
+            <div class="text-6xl mb-4" id="msg-icon">🏆</div>
+            <h3 class="text-2xl font-bold text-amber-400 retro-font mb-4" id="msg-title">戦闘勝利！</h3>
+            <p class="text-sm text-slate-200 leading-relaxed mb-6" id="msg-body">
+                魔物を倒しました！
+            </p>
+            <button id="msg-btn" class="px-8 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black rounded-xl shadow-lg transition active:scale-95 w-full">
+                次へすすむ
+            </button>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1270,7 +1283,7 @@
                     gameState.player.clearedUnits = data.clearedUnits || [];
                     gameState.player.potions = data.potions !== undefined ? data.potions : gameState.player.potions;
                     gameState.player.maxHp = data.maxHp || gameState.player.maxHp;
-                    gameState.player.hp = data.hp !== undefined ? data.hp : gameState.player.maxHp;
+                    gameState.player.hp = data.hp !== undefined ? data.hp : data.maxHp;
                     gameState.player.atk = data.atk || gameState.player.atk;
 
                     // Show Resume Option if valid character data is found
