@@ -98,7 +98,7 @@
             <h2 class="text-3xl md:text-5xl font-black text-amber-400 mb-4 tracking-widest retro-font drop-shadow-md">RPG勉強クエスト</h2>
             <p class="text-slate-300 max-w-md mx-auto mb-8 leading-relaxed text-sm md:text-base">
                 クイズに答えて魔物を倒す、学習型ファンタジーRPG！<br>
-                学年と単元を選んで、キミにぴったりの知恵の試練に挑おう！
+                学年と単元を選んで、キミにぴったりの知恵の試練に挑もう！
             </p>
             <div class="flex flex-col items-center gap-4">
                 <button onclick="changeScreen('screen-character')" class="retro-font px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xl rounded-xl shadow-[0_4px_20px_rgba(245,158,11,0.5)] border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0 w-64 text-center">
@@ -301,7 +301,7 @@
                             <h4 class="font-bold text-amber-300 text-base">社会・歴史の大地</h4>
                             <span class="text-[10px] bg-amber-500/20 text-amber-300 py-0.5 px-1.5 rounded">歴史・地理</span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-1">日本の地域、歴史の英傑や世界地理</p>
+                        <p class="text-xs text-slate-400 mt-1">日本の地域、歴史 of 英傑や世界地理</p>
                         <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
                             <div class="bg-amber-400 h-full rounded-full" id="progress-social" style="width: 0%"></div>
                         </div>
@@ -610,19 +610,33 @@
 
         // Global Firebase state and environmental variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'rpg-study-quest';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' 
-            ? JSON.parse(__firebase_config) 
-            : {
-                apiKey: "",
-                authDomain: "",
-                projectId: "",
-                storageBucket: "",
-                messagingSenderId: "",
-                appId: ""
-              };
+        
+        // フォールバック用のダミー設定
+        const fallbackConfig = {
+            apiKey: "AIzaSyDummyKey_For_Preview_And_Local_Development",
+            authDomain: "rpg-study-quest.firebaseapp.com",
+            projectId: "rpg-study-quest",
+            storageBucket: "rpg-study-quest.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:dummyappid"
+        };
 
-        let db, auth;
-        let currentUserId = null;
+        // Firebase構成の判定（環境から提供されていない、または中身が空の場合はダミーとローカル保存を利用）
+        let rawConfig = null;
+        try {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                rawConfig = JSON.parse(__firebase_config);
+            }
+        } catch (e) {
+            console.warn("Environmental Firebase config parsing failed.");
+        }
+
+        const firebaseConfig = (rawConfig && rawConfig.apiKey) ? rawConfig : fallbackConfig;
+
+        let db = null;
+        let auth = null;
+        let currentUserId = "offline-hero-" + Math.floor(Math.random() * 100000);
+        let isFirebaseActive = false;
 
         // Web Audio Synthesizer for Retro Game SFX
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -952,7 +966,7 @@
                         bodies: {
                             name: "人の体のつくりと呼吸",
                             questions: [
-                                { q: "吐き出す空気に多く含まれていて、石灰水を白く濁らせる気体は何？", a: ["酸素", "窒素", "二酸化炭素", "水素"], c: 2 },
+                                { q: "吐き出す空기에多く含まれていて、石灰水を白く濁らせる気体は何？", a: ["酸素", "窒素", "二酸化炭素", "水素"], c: 2 },
                                 { q: "口から食べた食べ物は、食道・胃を通ったあとどこに送られる？", a: ["心臓", "肺", "小腸", "気管"], c: 2 }
                             ]
                         }
@@ -1217,12 +1231,56 @@
             }
         };
 
+        // ローカルストレージを使用した超高速なセーブ＆ロード
+        function savePlayerToLocal() {
+            try {
+                localStorage.setItem('rpg_study_quest_save', JSON.stringify(gameState.player));
+            } catch (e) {
+                console.warn("Local storage save failed:", e);
+            }
+        }
+
+        function loadPlayerFromLocal() {
+            try {
+                const localData = localStorage.getItem('rpg_study_quest_save');
+                if (localData) {
+                    const parsed = JSON.parse(localData);
+                    if (parsed && parsed.name && parsed.name !== '勇者') {
+                        // ローカル状態を即時に反映して待ち時間をゼロにする
+                        gameState.player = { ...gameState.player, ...parsed };
+                        
+                        const resumeBtn = document.getElementById('btn-resume');
+                        if (resumeBtn) {
+                            resumeBtn.classList.remove('hidden');
+                            resumeBtn.innerText = `続きから遊ぶ (${gameState.player.name} Lv.${gameState.player.lv})`;
+                        }
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn("Local storage load failed:", e);
+            }
+            return false;
+        }
+
+        // Firebase Auth & Firestoreの非同期初期化
         async function initAuth() {
+            // まずはローカルにセーブデータがあるかチェックして即起動できるようにする（超高速化）
+            loadPlayerFromLocal();
+
+            // APIキーがダミーや空欄の場合はクラウド通信をスキップしてローカルモードにする
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes("DummyKey") || firebaseConfig.apiKey === "") {
+                console.log("Offline mode: Firebase config keys are absent or default.");
+                isFirebaseActive = false;
+                return;
+            }
+
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
 
+                // RULE 3: 匿名サインインを最初に確実にawaitする
                 let userCredential;
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     userCredential = await signInWithCustomToken(auth, __initial_auth_token);
@@ -1231,17 +1289,22 @@
                 }
                 
                 currentUserId = userCredential.user.uid;
+                isFirebaseActive = true;
                 console.log("Logged into adventurer server:", currentUserId);
 
-                // Auto-sync existing player status if any
+                // クラウドデータを同期（あった場合は上書き）
                 await syncPlayerFromCloud();
             } catch (error) {
-                console.error("Firebase Connection Error:", error);
+                console.error("Firebase Connection Error (Running Offline mode instead):", error);
+                isFirebaseActive = false;
             }
         }
 
         async function savePlayerToCloud() {
-            if (!auth || !auth.currentUser) return;
+            // ローカル保存はどんな場合でも常に走らせて遅延をなくす
+            savePlayerToLocal();
+
+            if (!isFirebaseActive || !auth || !auth.currentUser) return;
             try {
                 // RULE 1: Strict Paths compliance for public sharing
                 const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', auth.currentUser.uid);
@@ -1268,7 +1331,7 @@
         }
 
         async function syncPlayerFromCloud() {
-            if (!auth || !auth.currentUser) return;
+            if (!isFirebaseActive || !auth || !auth.currentUser) return;
             try {
                 const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', auth.currentUser.uid);
                 const docSnap = await getDoc(playerRef);
@@ -1286,7 +1349,7 @@
                     gameState.player.hp = data.hp !== undefined ? data.hp : data.maxHp;
                     gameState.player.atk = data.atk || gameState.player.atk;
 
-                    // Show Resume Option if valid character data is found
+                    // セーブボタンのアップデート
                     if (data.name && data.name !== '勇者') {
                         const resumeBtn = document.getElementById('btn-resume');
                         if (resumeBtn) {
@@ -1294,7 +1357,8 @@
                             resumeBtn.innerText = `続きから遊ぶ (${data.name} Lv.${data.lv})`;
                         }
                     }
-                    console.log("Cloud Load Successful.");
+                    savePlayerToLocal(); // ローカルにもミラー保存
+                    console.log("Cloud Load & Local Mirror Sync Successful.");
                 }
             } catch (error) {
                 console.error("Cloud Sync Load Failed:", error);
@@ -1372,9 +1436,8 @@
             gameState.player.clearedUnits = [];
 
             playSound('levelup');
-            // Transition directly to grade selection
             changeScreen('screen-grade');
-            savePlayerToCloud(); // Save state
+            savePlayerToCloud(); // Save state (Local + Cloud)
         }
 
         // GRADE SELECT
@@ -2086,11 +2149,7 @@
             modal.classList.remove('hidden');
 
             const idDisplay = document.getElementById('my-user-id-display');
-            if (auth && auth.currentUser) {
-                idDisplay.innerText = auth.currentUser.uid;
-            } else {
-                idDisplay.innerText = "接続中...";
-            }
+            idDisplay.innerText = currentUserId;
 
             const listBody = document.getElementById('ranking-list-body');
             listBody.innerHTML = `
@@ -2101,9 +2160,24 @@
                 </tr>
             `;
 
+            // Firebase接続が無い・またはエラー時のフォールバックダミーランキング
+            const loadLocalRanking = () => {
+                const dummyPlayers = [
+                    { id: currentUserId, name: gameState.player.name + " (キミ)", class: gameState.player.class, grade: gameState.player.grade, lv: gameState.player.lv, exp: gameState.player.exp, gold: gameState.player.gold, clearedCount: gameState.player.clearedUnits.length },
+                    { id: "guest-3829", name: "たくや", class: "warrior", grade: "elem_5", lv: 8, exp: 20, gold: 380, clearedCount: 6 },
+                    { id: "guest-1082", name: "さくら", class: "mage", grade: "elem_4", lv: 5, exp: 60, gold: 240, clearedCount: 4 },
+                    { id: "guest-9214", name: "ゆうと", class: "scholar", grade: "mid_1", lv: 3, exp: 40, gold: 120, clearedCount: 2 }
+                ];
+                renderRankingUI(dummyPlayers);
+            };
+
+            if (!isFirebaseActive) {
+                console.log("Using offline ranking view.");
+                loadLocalRanking();
+                return;
+            }
+
             try {
-                if (!auth || !auth.currentUser) return;
-                
                 // RULE 2: Read collections cleanly without order/where limits
                 const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players');
                 const qSnap = await getDocs(playersCol);
@@ -2123,62 +2197,79 @@
                     });
                 });
 
-                // In-memory sort (RULE 2 compliance)
-                playersList.sort((a, b) => {
-                    if (b.lv !== a.lv) return b.lv - a.lv;
-                    if (b.exp !== a.exp) return b.exp - a.exp;
-                    if (b.clearedCount !== a.clearedCount) return b.clearedCount - a.clearedCount;
-                    return b.gold - a.gold;
-                });
-
-                listBody.innerHTML = '';
-                if (playersList.length === 0) {
-                    listBody.innerHTML = `
-                        <tr>
-                            <td colspan="6" class="text-center py-8 text-slate-500">登録された冒険者がいません。最初の冒険者になろう！</td>
-                        </tr>
-                    `;
-                    return;
+                // 自データが確実にリストに存在するようにする
+                if (!playersList.some(p => p.id === currentUserId)) {
+                    playersList.push({
+                        id: currentUserId,
+                        name: gameState.player.name,
+                        class: gameState.player.class,
+                        grade: gameState.player.grade,
+                        lv: gameState.player.lv,
+                        exp: gameState.player.exp,
+                        gold: gameState.player.gold,
+                        clearedCount: gameState.player.clearedUnits.length
+                    });
                 }
 
-                playersList.forEach((p, idx) => {
-                    const isMe = (p.id === auth.currentUser.uid);
-                    let rankBadge = `${idx + 1}`;
-                    if (idx === 0) rankBadge = '🥇';
-                    else if (idx === 1) rankBadge = '🥈';
-                    else if (idx === 2) rankBadge = '🥉';
-
-                    const gradeInfo = QUESTIONS_DB[p.grade];
-                    const gradeName = gradeInfo ? gradeInfo.name : "不明";
-                    const classEmoji = PLAYER_CLASSES[p.class] ? PLAYER_CLASSES[p.class].emoji : "🛡️";
-
-                    const row = document.createElement('tr');
-                    row.className = `border-b border-slate-800/50 text-xs py-2.5 ${isMe ? 'bg-indigo-950/40 text-indigo-200 font-bold' : 'hover:bg-slate-800/20'}`;
-                    row.innerHTML = `
-                        <td class="py-2.5 px-1 text-center font-bold text-sm">${rankBadge}</td>
-                        <td class="py-2.5 px-2 flex items-center gap-1.5 truncate max-w-[150px]">
-                            <span class="text-base">${classEmoji}</span>
-                            <div class="truncate">
-                                <div class="truncate text-slate-100 ${isMe ? 'text-indigo-300 font-bold' : ''}">${p.name}</div>
-                                <div class="text-[8px] text-slate-500 font-mono truncate select-all leading-none mt-0.5">${p.id}</div>
-                            </div>
-                        </td>
-                        <td class="py-2.5 px-2 text-center text-slate-300">${gradeName}</td>
-                        <td class="py-2.5 px-2 text-center text-emerald-400 font-bold">Lv.${p.lv}</td>
-                        <td class="py-2.5 px-2 text-center text-slate-300">${p.clearedCount} 単元</td>
-                        <td class="py-2.5 px-2 text-right text-amber-400 font-bold">🪙 ${p.gold}</td>
-                    `;
-                    listBody.appendChild(row);
-                });
+                renderRankingUI(playersList);
 
             } catch (error) {
-                console.error("Error loading rankings:", error);
+                console.error("Error loading rankings from Cloud:", error);
+                loadLocalRanking();
+            }
+        }
+
+        // ランキングテーブルを描画する共通処理
+        function renderRankingUI(playersList) {
+            const listBody = document.getElementById('ranking-list-body');
+            listBody.innerHTML = '';
+
+            // In-memory sort (RULE 2 compliance)
+            playersList.sort((a, b) => {
+                if (b.lv !== a.lv) return b.lv - a.lv;
+                if (b.exp !== a.exp) return b.exp - a.exp;
+                if (b.clearedCount !== a.clearedCount) return b.clearedCount - a.clearedCount;
+                return b.gold - a.gold;
+            });
+
+            if (playersList.length === 0) {
                 listBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center py-8 text-red-400 font-bold">ギルドのデータ取得に失敗しました。</td>
+                        <td colspan="6" class="text-center py-8 text-slate-500">登録された冒険者がいません。最初の冒険者になろう！</td>
                     </tr>
                 `;
+                return;
             }
+
+            playersList.forEach((p, idx) => {
+                const isMe = (p.id === currentUserId);
+                let rankBadge = `${idx + 1}`;
+                if (idx === 0) rankBadge = '🥇';
+                else if (idx === 1) rankBadge = '🥈';
+                else if (idx === 2) rankBadge = '🥉';
+
+                const gradeInfo = QUESTIONS_DB[p.grade];
+                const gradeName = gradeInfo ? gradeInfo.name : "不明";
+                const classEmoji = PLAYER_CLASSES[p.class] ? PLAYER_CLASSES[p.class].emoji : "🛡️";
+
+                const row = document.createElement('tr');
+                row.className = `border-b border-slate-800/50 text-xs py-2.5 ${isMe ? 'bg-indigo-950/40 text-indigo-200 font-bold' : 'hover:bg-slate-800/20'}`;
+                row.innerHTML = `
+                    <td class="py-2.5 px-1 text-center font-bold text-sm">${rankBadge}</td>
+                    <td class="py-2.5 px-2 flex items-center gap-1.5 truncate max-w-[150px]">
+                        <span class="text-base">${classEmoji}</span>
+                        <div class="truncate">
+                            <div class="truncate text-slate-100 ${isMe ? 'text-indigo-300 font-bold' : ''}">${p.name}</div>
+                            <div class="text-[8px] text-slate-500 font-mono truncate select-all leading-none mt-0.5">${p.id}</div>
+                        </div>
+                    </td>
+                    <td class="py-2.5 px-2 text-center text-slate-300">${gradeName}</td>
+                    <td class="py-2.5 px-2 text-center text-emerald-400 font-bold">Lv.${p.lv}</td>
+                    <td class="py-2.5 px-2 text-center text-slate-300">${p.clearedCount} 単元</td>
+                    <td class="py-2.5 px-2 text-right text-amber-400 font-bold">🪙 ${p.gold}</td>
+                `;
+                listBody.appendChild(row);
+            });
         }
 
         function closeRanking() {
@@ -2188,9 +2279,8 @@
 
         // Copy User ID safely within frame constraint
         function copyMyUserId() {
-            if (!auth || !auth.currentUser) return;
             const temp = document.createElement('input');
-            temp.value = auth.currentUser.uid;
+            temp.value = currentUserId;
             document.body.appendChild(temp);
             temp.select();
             try {
