@@ -100,9 +100,17 @@
                 クイズに答えて魔物を倒す、学習型ファンタジーRPG！<br>
                 学年と単元を選んで、キミにぴったりの知恵の試練に挑もう！
             </p>
-            <button onclick="changeScreen('screen-character')" class="retro-font px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xl rounded-xl shadow-[0_4px_20px_rgba(245,158,11,0.5)] border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0">
-                冒険をはじめる
-            </button>
+            <div class="flex flex-col items-center gap-4">
+                <button onclick="changeScreen('screen-character')" class="retro-font px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-xl rounded-xl shadow-[0_4px_20px_rgba(245,158,11,0.5)] border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0 w-64 text-center">
+                    冒険をはじめる
+                </button>
+                <button id="btn-resume" onclick="resumeAdventure()" class="hidden retro-font px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black text-lg rounded-xl shadow-[0_4px_20px_rgba(16,185,129,0.3)] border-b-4 border-emerald-700 transition active:translate-y-1 active:border-b-0 w-64 text-center">
+                    続きから遊ぶ
+                </button>
+                <button onclick="openRanking()" class="retro-font px-8 py-2 bg-indigo-600 hover:bg-indigo-700 text-slate-100 font-bold text-sm rounded-xl border border-indigo-500 transition w-64 text-center shadow-md">
+                    🏆 冒険者ランキング
+                </button>
+            </div>
         </div>
 
         <!-- CHARACTER SELECT SCREEN -->
@@ -207,7 +215,10 @@
         <div id="screen-map" class="hidden flex-1 flex flex-col p-6">
             <div class="flex flex-wrap justify-between items-center mb-6 border-b border-slate-800 pb-3 gap-3">
                 <h3 class="text-xl font-bold text-amber-400 retro-font">挑戦する教科を選択しよう</h3>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2 justify-end">
+                    <button onclick="openRanking()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-slate-100 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md">
+                        🏆 ランキング
+                    </button>
                     <button onclick="changeScreen('screen-grade')" class="px-3 py-1.5 bg-indigo-900 hover:bg-indigo-800 text-indigo-200 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md border border-indigo-700">
                         🔄 学年を変更
                     </button>
@@ -529,19 +540,77 @@
         </div>
     </div>
 
-    <!-- MESSAGE MODAL -->
-    <div id="message-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border-4 border-amber-500 rounded-2xl w-full max-w-md p-6 text-center shadow-2xl flex flex-col items-center">
-            <span id="msg-icon" class="text-7xl mb-4">🏆</span>
-            <h3 id="msg-title" class="text-2xl font-black text-amber-400 retro-font mb-2">VICTORY</h3>
-            <p id="msg-body" class="text-slate-300 text-sm leading-relaxed mb-6">モンスターに勝利した！</p>
-            <button id="msg-btn" onclick="closeMessageModal()" class="retro-font px-8 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-base rounded-xl border-b-4 border-amber-700 transition active:translate-y-1 active:border-b-0">
-                次へ進む
-            </button>
+    <!-- RANKING MODAL -->
+    <div id="ranking-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border-4 border-indigo-500 rounded-2xl w-full max-w-2xl p-6 relative shadow-2xl flex flex-col max-h-[85vh]">
+            <h3 class="text-2xl font-bold text-indigo-400 retro-font text-center mb-4">🏆 冒険者ランキング (全国・友達)</h3>
+            <p class="text-xs text-slate-400 text-center mb-4">
+                レベル ＞ 経験値 ＞ クリア単元数 ＞ ゴールドの順で集計されています。<br>
+                ユーザーIDを友達と共有して、一緒に競い合おう！
+            </p>
+            
+            <div class="overflow-y-auto flex-1 pr-1 border border-slate-800 rounded-lg bg-slate-950/50 p-2">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-[10px] md:text-xs text-slate-400 font-bold uppercase">
+                            <th class="py-2 px-1 text-center">順位</th>
+                            <th class="py-2 px-2">冒険者</th>
+                            <th class="py-2 px-2 text-center">学年</th>
+                            <th class="py-2 px-2 text-center">レベル</th>
+                            <th class="py-2 px-2 text-center">クリア数</th>
+                            <th class="py-2 px-2 text-right">ゴールド</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-list-body" class="text-xs md:text-sm">
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-slate-500">
+                                <i class="fa fa-spinner animate-spin mr-2"></i> 冒険者ギルドから名簿を取得中...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 bg-slate-850 p-3 rounded-lg border border-slate-750 flex flex-col sm:flex-row justify-between items-center gap-2">
+                <div class="text-left w-full sm:w-auto">
+                    <span class="text-[10px] text-slate-400 block font-bold">キミの冒険者ID (友達に教えて一緒に遊ぼう)</span>
+                    <span id="my-user-id-display" class="font-mono text-xs text-indigo-300 font-bold break-all">ID取得中...</span>
+                </div>
+                <button onclick="copyMyUserId()" class="w-full sm:w-auto px-4 py-2 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 rounded-lg text-xs font-bold shrink-0 transition active:scale-95">
+                    📋 IDをコピー
+                </button>
+            </div>
+
+            <div class="flex justify-end mt-4">
+                <button onclick="closeRanking()" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-bold text-sm transition">
+                    閉じる
+                </button>
+            </div>
         </div>
     </div>
 
-    <script>
+    <!-- MESSAGE MODAL -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase state and environmental variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rpg-study-quest';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "",
+                authDomain: "",
+                projectId: "",
+                storageBucket: "",
+                messagingSenderId: "",
+                appId: ""
+              };
+
+        let db, auth;
+        let currentUserId = null;
+
         // Web Audio Synthesizer for Retro Game SFX
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
@@ -1135,6 +1204,90 @@
             }
         };
 
+        async function initAuth() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                let userCredential;
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    userCredential = await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    userCredential = await signInAnonymously(auth);
+                }
+                
+                currentUserId = userCredential.user.uid;
+                console.log("Logged into adventurer server:", currentUserId);
+
+                // Auto-sync existing player status if any
+                await syncPlayerFromCloud();
+            } catch (error) {
+                console.error("Firebase Connection Error:", error);
+            }
+        }
+
+        async function savePlayerToCloud() {
+            if (!auth || !auth.currentUser) return;
+            try {
+                // RULE 1: Strict Paths compliance for public sharing
+                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', auth.currentUser.uid);
+                await setDoc(playerRef, {
+                    userId: auth.currentUser.uid,
+                    name: gameState.player.name,
+                    class: gameState.player.class,
+                    grade: gameState.player.grade,
+                    lv: gameState.player.lv,
+                    exp: gameState.player.exp,
+                    gold: gameState.player.gold,
+                    clearedCount: gameState.player.clearedUnits.length,
+                    clearedUnits: gameState.player.clearedUnits,
+                    potions: gameState.player.potions,
+                    maxHp: gameState.player.maxHp,
+                    hp: gameState.player.hp,
+                    atk: gameState.player.atk,
+                    lastUpdated: new Date().toISOString()
+                }, { merge: true });
+                console.log("Cloud Save Successful.");
+            } catch (error) {
+                console.error("Cloud Save Failed:", error);
+            }
+        }
+
+        async function syncPlayerFromCloud() {
+            if (!auth || !auth.currentUser) return;
+            try {
+                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', auth.currentUser.uid);
+                const docSnap = await getDoc(playerRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    gameState.player.name = data.name || gameState.player.name;
+                    gameState.player.class = data.class || gameState.player.class;
+                    gameState.player.grade = data.grade || gameState.player.grade;
+                    gameState.player.lv = data.lv || gameState.player.lv;
+                    gameState.player.exp = data.exp || gameState.player.exp;
+                    gameState.player.gold = data.gold || gameState.player.gold;
+                    gameState.player.clearedUnits = data.clearedUnits || [];
+                    gameState.player.potions = data.potions !== undefined ? data.potions : gameState.player.potions;
+                    gameState.player.maxHp = data.maxHp || gameState.player.maxHp;
+                    gameState.player.hp = data.hp !== undefined ? data.hp : gameState.player.maxHp;
+                    gameState.player.atk = data.atk || gameState.player.atk;
+
+                    // Show Resume Option if valid character data is found
+                    if (data.name && data.name !== '勇者') {
+                        const resumeBtn = document.getElementById('btn-resume');
+                        if (resumeBtn) {
+                            resumeBtn.classList.remove('hidden');
+                            resumeBtn.innerText = `続きから遊ぶ (${data.name} Lv.${data.lv})`;
+                        }
+                    }
+                    console.log("Cloud Load Successful.");
+                }
+            } catch (error) {
+                console.error("Cloud Sync Load Failed:", error);
+            }
+        }
+
         // SCREEN CHANGER
         function changeScreen(screenId) {
             document.querySelectorAll('main > div').forEach(el => el.classList.add('hidden'));
@@ -1208,6 +1361,7 @@
             playSound('levelup');
             // Transition directly to grade selection
             changeScreen('screen-grade');
+            savePlayerToCloud(); // Save state
         }
 
         // GRADE SELECT
@@ -1227,6 +1381,7 @@
             // Move to Map
             changeScreen('screen-map');
             updateMapProgress();
+            savePlayerToCloud(); // Save state
         }
 
         // UPDATE PROGRESS BAR & UNLOCKS
@@ -1779,10 +1934,12 @@
                     勉強によって鍛えられた圧倒的な知恵の力で、世界に永久の平和がもたらされました！<br>
                     キミこそ真の賢者です。
                 `;
+                savePlayerToCloud(); // Sync victory state
                 showModalBanner("👑 GRAND VICTORY", bodyText, "👑", () => {
                     location.reload();
                 });
             } else {
+                savePlayerToCloud(); // Sync state
                 showModalBanner("戦闘勝利！", bodyText, "🏆", () => {
                     // Back to units screen to choose another unit
                     changeScreen('screen-map');
@@ -1803,6 +1960,7 @@
 
             gameState.player.hp = gameState.player.maxHp;
             gameState.player.gold = Math.max(0, gameState.player.gold - 10);
+            savePlayerToCloud(); // Sync loss state
 
             showModalBanner("敗北...", bodyText, "💀", () => {
                 changeScreen('screen-map');
@@ -1873,6 +2031,7 @@
 
             document.getElementById('shop-gold').innerText = gameState.player.gold;
             updateHeader();
+            savePlayerToCloud(); // Sync shop purchase
         }
 
         // STATUS MODAL TRIGGERS
@@ -1900,9 +2059,162 @@
             document.getElementById('status-modal').classList.add('hidden');
         }
 
+        // RESUME FROM CLOUD
+        function resumeAdventure() {
+            playSound('levelup');
+            changeScreen('screen-map');
+            updateMapProgress();
+        }
+
+        // OPEN RANKING SCREEN (Sync Friends and Global players)
+        async function openRanking() {
+            playSound('coin');
+            const modal = document.getElementById('ranking-modal');
+            modal.classList.remove('hidden');
+
+            const idDisplay = document.getElementById('my-user-id-display');
+            if (auth && auth.currentUser) {
+                idDisplay.innerText = auth.currentUser.uid;
+            } else {
+                idDisplay.innerText = "接続中...";
+            }
+
+            const listBody = document.getElementById('ranking-list-body');
+            listBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-slate-500">
+                        <i class="fa fa-spinner animate-spin mr-2"></i> 冒険者ギルドから名簿を取得中...
+                    </td>
+                </tr>
+            `;
+
+            try {
+                if (!auth || !auth.currentUser) return;
+                
+                // RULE 2: Read collections cleanly without order/where limits
+                const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+                const qSnap = await getDocs(playersCol);
+
+                const playersList = [];
+                qSnap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    playersList.push({
+                        id: docSnap.id,
+                        name: data.name || "ななしの勇者",
+                        class: data.class || "warrior",
+                        grade: data.grade || "elem_1",
+                        lv: parseInt(data.lv) || 1,
+                        exp: parseInt(data.exp) || 0,
+                        gold: parseInt(data.gold) || 0,
+                        clearedCount: parseInt(data.clearedCount) || 0
+                    });
+                });
+
+                // In-memory sort (RULE 2 compliance)
+                playersList.sort((a, b) => {
+                    if (b.lv !== a.lv) return b.lv - a.lv;
+                    if (b.exp !== a.exp) return b.exp - a.exp;
+                    if (b.clearedCount !== a.clearedCount) return b.clearedCount - a.clearedCount;
+                    return b.gold - a.gold;
+                });
+
+                listBody.innerHTML = '';
+                if (playersList.length === 0) {
+                    listBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-slate-500">登録された冒険者がいません。最初の冒険者になろう！</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                playersList.forEach((p, idx) => {
+                    const isMe = (p.id === auth.currentUser.uid);
+                    let rankBadge = `${idx + 1}`;
+                    if (idx === 0) rankBadge = '🥇';
+                    else if (idx === 1) rankBadge = '🥈';
+                    else if (idx === 2) rankBadge = '🥉';
+
+                    const gradeInfo = QUESTIONS_DB[p.grade];
+                    const gradeName = gradeInfo ? gradeInfo.name : "不明";
+                    const classEmoji = PLAYER_CLASSES[p.class] ? PLAYER_CLASSES[p.class].emoji : "🛡️";
+
+                    const row = document.createElement('tr');
+                    row.className = `border-b border-slate-800/50 text-xs py-2.5 ${isMe ? 'bg-indigo-950/40 text-indigo-200 font-bold' : 'hover:bg-slate-800/20'}`;
+                    row.innerHTML = `
+                        <td class="py-2.5 px-1 text-center font-bold text-sm">${rankBadge}</td>
+                        <td class="py-2.5 px-2 flex items-center gap-1.5 truncate max-w-[150px]">
+                            <span class="text-base">${classEmoji}</span>
+                            <div class="truncate">
+                                <div class="truncate text-slate-100 ${isMe ? 'text-indigo-300 font-bold' : ''}">${p.name}</div>
+                                <div class="text-[8px] text-slate-500 font-mono truncate select-all leading-none mt-0.5">${p.id}</div>
+                            </div>
+                        </td>
+                        <td class="py-2.5 px-2 text-center text-slate-300">${gradeName}</td>
+                        <td class="py-2.5 px-2 text-center text-emerald-400 font-bold">Lv.${p.lv}</td>
+                        <td class="py-2.5 px-2 text-center text-slate-300">${p.clearedCount} 単元</td>
+                        <td class="py-2.5 px-2 text-right text-amber-400 font-bold">🪙 ${p.gold}</td>
+                    `;
+                    listBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error("Error loading rankings:", error);
+                listBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-red-400 font-bold">ギルドのデータ取得に失敗しました。</td>
+                    </tr>
+                `;
+            }
+        }
+
+        function closeRanking() {
+            playSound('coin');
+            document.getElementById('ranking-modal').classList.add('hidden');
+        }
+
+        // Copy User ID safely within frame constraint
+        function copyMyUserId() {
+            if (!auth || !auth.currentUser) return;
+            const temp = document.createElement('input');
+            temp.value = auth.currentUser.uid;
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+                showMessageBanner("IDをコピーしました", "友達に送ってランキングを競おう！");
+                playSound('coin');
+            } catch (err) {
+                console.error('Could not copy user ID:', err);
+            }
+            document.body.removeChild(temp);
+        }
+
+        // Expose critical interaction APIs to window scope (type=module fallback)
+        window.selectClass = selectClass;
+        window.confirmCharacter = confirmCharacter;
+        window.selectGrade = selectGrade;
+        window.changeScreen = changeScreen;
+        window.openShop = openShop;
+        window.closeShop = closeShop;
+        window.openStatus = openStatus;
+        window.closeStatus = closeStatus;
+        window.selectSubject = selectSubject;
+        window.startBattle = startBattle;
+        window.usePotion = usePotion;
+        window.useSpecialSkill = useSpecialSkill;
+        window.escapeBattle = escapeBattle;
+        window.buyItem = buyItem;
+        window.submitAnswer = submitAnswer;
+        window.resumeAdventure = resumeAdventure;
+        window.openRanking = openRanking;
+        window.closeRanking = closeRanking;
+        window.copyMyUserId = copyMyUserId;
+
         // On load
         window.onload = function() {
             updateHeader();
+            initAuth();
         }
     </script>
 </body>
